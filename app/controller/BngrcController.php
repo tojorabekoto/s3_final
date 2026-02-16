@@ -128,6 +128,136 @@ class BngrcController
     }
 
     // ────────────────────────────────────────────────
+    // Insertion de don
+    // ────────────────────────────────────────────────
+    public function showInsertionDon()
+    {
+        $data = [
+            'regions' => $this->model->getRegions(),
+            'villes' => $this->model->getVilles(),
+            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
+            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'message' => null,
+            'error' => null
+        ];
+
+        Flight::render('insertion_don', $data);
+    }
+
+    public function submitInsertionDon()
+    {
+        $type = $_POST['type_don'] ?? '';
+        $quantite = isset($_POST['quantite']) ? (float)$_POST['quantite'] : 0;
+        $error = null;
+        $message = null;
+
+        if ($quantite <= 0) {
+            $error = 'La quantite doit etre superieure a 0.';
+        } elseif ($type === 'materiaux') {
+            $id_besoin = (int)($_POST['id_besoin'] ?? 0);
+            if ($id_besoin <= 0) {
+                $error = 'Veuillez selectionner un besoin materiel.';
+            } else {
+                $this->model->insertDonMateriaux($id_besoin, $quantite);
+                $message = 'Don materiel enregistre avec succes.';
+            }
+        } elseif ($type === 'argent') {
+            $id_besoin_argent = (int)($_POST['id_besoin_argent'] ?? 0);
+            if ($id_besoin_argent <= 0) {
+                $error = 'Veuillez selectionner un besoin en argent.';
+            } else {
+                $this->model->insertDonArgent($id_besoin_argent, $quantite);
+                $message = 'Don en argent enregistre avec succes.';
+            }
+        } else {
+            $error = 'Type de don invalide.';
+        }
+
+        $data = [
+            'regions' => $this->model->getRegions(),
+            'villes' => $this->model->getVilles(),
+            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
+            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'message' => $message,
+            'error' => $error
+        ];
+
+        Flight::render('insertion_don', $data);
+    }
+
+    // ────────────────────────────────────────────────
+    // Attribution de don
+    // ────────────────────────────────────────────────
+    public function showAttribution()
+    {
+        $data = [
+            'regions' => $this->model->getRegions(),
+            'villes' => $this->model->getVilles(),
+            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
+            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'restant_materiaux' => [],
+            'restant_argent' => [],
+            'message' => null,
+            'error' => null
+        ];
+
+        Flight::render('attribution', $data);
+    }
+
+    public function submitAttribution()
+    {
+        $type = $_POST['type_don'] ?? '';
+        $quantite = isset($_POST['quantite']) ? (float)$_POST['quantite'] : 0;
+        $error = null;
+        $message = null;
+
+        if ($quantite <= 0) {
+            $error = 'La quantite doit etre superieure a 0.';
+        } elseif ($type === 'materiaux') {
+            $id_besoin = (int)($_POST['id_besoin'] ?? 0);
+            if ($id_besoin <= 0) {
+                $error = 'Veuillez selectionner un besoin materiel.';
+            } else {
+                $restant = $this->model->getRestantMateriauxByBesoin($id_besoin);
+                if ($quantite > $restant) {
+                    $error = 'Quantite superieure au restant disponible.';
+                } else {
+                    $this->model->insertDonMateriaux($id_besoin, $quantite);
+                    $message = 'Attribution materielle enregistree avec succes.';
+                }
+            }
+        } elseif ($type === 'argent') {
+            $id_besoin_argent = (int)($_POST['id_besoin_argent'] ?? 0);
+            if ($id_besoin_argent <= 0) {
+                $error = 'Veuillez selectionner un besoin en argent.';
+            } else {
+                $restant = $this->model->getRestantArgentByBesoin($id_besoin_argent);
+                if ($quantite > $restant) {
+                    $error = 'Montant superieur au restant disponible.';
+                } else {
+                    $this->model->insertDonArgent($id_besoin_argent, $quantite);
+                    $message = 'Attribution en argent enregistree avec succes.';
+                }
+            }
+        } else {
+            $error = 'Type de don invalide.';
+        }
+
+        $data = [
+            'regions' => $this->model->getRegions(),
+            'villes' => $this->model->getVilles(),
+            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
+            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'restant_materiaux' => [],
+            'restant_argent' => [],
+            'message' => $message,
+            'error' => $error
+        ];
+
+        Flight::render('attribution', $data);
+    }
+
+    // ────────────────────────────────────────────────
     // Bonus : page d'accueil / dashboard (exemple)
     // ────────────────────────────────────────────────
     public function dashboard()

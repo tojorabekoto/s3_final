@@ -158,5 +158,66 @@ class BngrcModel {
         $stmt->execute([$id_ville]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getBesoinsMateriauxForForm() {
+        $stmt = $this->db->query(
+            "SELECT bm.id_besoin, bm.nom_besoin, bm.quantite, bm.unite, s.id_ville, cb.nom AS categorie
+             FROM besoin_materiaux bm
+             JOIN sinistre s ON s.id_sinistre = bm.id_sinistre
+             JOIN categorie_besoin cb ON cb.id_categorie = bm.id_categorie
+             ORDER BY bm.id_besoin"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getBesoinsArgentForForm() {
+        $stmt = $this->db->query(
+            "SELECT ba.id_besoin_argent, ba.montant_necessaire, s.id_ville
+             FROM besoin_argent ba
+             JOIN sinistre s ON s.id_sinistre = ba.id_sinistre
+             ORDER BY ba.id_besoin_argent"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function insertDonMateriaux($id_besoin, $quantite) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO don_materiaux (id_besoin, quantite_donnee) VALUES (?, ?)"
+        );
+        return $stmt->execute([$id_besoin, $quantite]);
+    }
+
+    public function insertDonArgent($id_besoin_argent, $montant) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO don_argent (id_besoin_argent, montant_donne) VALUES (?, ?)"
+        );
+        return $stmt->execute([$id_besoin_argent, $montant]);
+    }
+
+    public function getRestantMateriauxByBesoin($id_besoin) {
+        $stmt = $this->db->prepare(
+            "SELECT (bm.quantite - COALESCE(SUM(dm.quantite_donnee), 0)) AS quantite_restante
+             FROM besoin_materiaux bm
+             LEFT JOIN don_materiaux dm ON dm.id_besoin = bm.id_besoin
+             WHERE bm.id_besoin = ?
+             GROUP BY bm.quantite"
+        );
+        $stmt->execute([$id_besoin]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (float)$row['quantite_restante'] : 0.0;
+    }
+
+    public function getRestantArgentByBesoin($id_besoin_argent) {
+        $stmt = $this->db->prepare(
+            "SELECT (ba.montant_necessaire - COALESCE(SUM(da.montant_donne), 0)) AS montant_restant
+             FROM besoin_argent ba
+             LEFT JOIN don_argent da ON da.id_besoin_argent = ba.id_besoin_argent
+             WHERE ba.id_besoin_argent = ?
+             GROUP BY ba.montant_necessaire"
+        );
+        $stmt->execute([$id_besoin_argent]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (float)$row['montant_restant'] : 0.0;
+    }
 }
 ?>

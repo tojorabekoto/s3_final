@@ -21,5 +21,10 @@ Flight::route('GET /besoin-argent/@id/dons', [$controller, 'getDonsArgent']);
 
 Flight::route('GET /categories',        [$controller, 'getCategoriesBesoin']);
 
+Flight::route('GET /insertion_don',     [$controller, 'showInsertionDon']);
+Flight::route('POST /insertion_don',    [$controller, 'submitInsertionDon']);
+Flight::route('GET /attribution',       [$controller, 'showAttribution']);
+Flight::route('POST /attribution',      [$controller, 'submitAttribution']);
+
 Flight::route('GET /',                  [$controller, 'dashboard']);
 Flight::route('GET /accueil',           [$controller, 'dashboard']);
