@@ -10,6 +10,7 @@ CREATE TABLE ville (
     id_ville INT AUTO_INCREMENT PRIMARY KEY,
     id_region INT NOT NULL,
     nom_ville VARCHAR(100) NOT NULL,
+    image_path VARCHAR(255),
     FOREIGN KEY (id_region) REFERENCES region(id_region)
     ON DELETE CASCADE
 );
@@ -64,3 +65,13 @@ CREATE TABLE don_argent (
     FOREIGN KEY (id_besoin_argent) REFERENCES besoin_argent(id_besoin_argent)
     ON DELETE CASCADE
 );
+
+
+ALTER TABLE ville ADD COLUMN image_path VARCHAR(255);
+
+UPDATE ville SET image_path = '/images/antananarivo.jpg' WHERE id_ville = 1;
+UPDATE ville SET image_path = '/images/toamasina.jpg' WHERE id_ville = 2;
+UPDATE ville SET image_path = '/images/mahajanga.jpg' WHERE id_ville = 3;
+UPDATE ville SET image_path = '/images/fianarantsoa.jpg' WHERE id_ville = 4;
+UPDATE ville SET image_path = '/images/ambato.jpg' WHERE id_ville = 5;
+UPDATE ville SET image_path = '/images/sambava1.jpg' WHERE id_ville = 6;

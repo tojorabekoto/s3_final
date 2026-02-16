@@ -81,7 +81,8 @@
                         <label class="form-label">Type de don</label>
                         <select name="type_don" id="typeSelect" class="form-select" required>
                             <option value="">-- Choisir --</option>
-                            <option value="materiaux">Materiaux</option>
+                            <option value="naturels">Naturels (riz, huile, sucre, ...)</option>
+                            <option value="materiaux">Materiaux (tole, clou, ...)</option>
                             <option value="argent">Argent</option>
                         </select>
                     </div>
@@ -90,7 +91,7 @@
                         <select name="id_besoin" id="besoinMateriaux" class="form-select">
                             <option value="">-- Choisir un besoin --</option>
                             <?php foreach ($besoins_materiaux as $besoin): ?>
-                                <option value="<?php echo $besoin['id_besoin']; ?>" data-ville="<?php echo $besoin['id_ville']; ?>">
+                                <option value="<?php echo $besoin['id_besoin']; ?>" data-ville="<?php echo $besoin['id_ville']; ?>" data-categorie="<?php echo htmlspecialchars($besoin['categorie']); ?>">
                                     <?php echo htmlspecialchars($besoin['nom_besoin']); ?> (<?php echo htmlspecialchars($besoin['categorie']); ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -131,22 +132,45 @@
     const besoinMateriaux = document.getElementById('besoinMateriaux');
     const besoinArgent = document.getElementById('besoinArgent');
 
+    const villesData = Array.from(villeSelect.options)
+        .filter(option => option.value)
+        .map(option => ({
+            id: option.value,
+            name: option.textContent.trim(),
+            region: option.dataset.region
+        }));
+
+    function renderVilles(regionId) {
+        villeSelect.innerHTML = '<option value="">-- Choisir une ville --</option>';
+        villesData
+            .filter(ville => !regionId || ville.region === regionId)
+            .forEach(ville => {
+                const option = document.createElement('option');
+                option.value = ville.id;
+                option.textContent = ville.name;
+                option.dataset.region = ville.region;
+                villeSelect.appendChild(option);
+            });
+    }
+
     function filterVilles() {
         const region = regionSelect.value;
-        Array.from(villeSelect.options).forEach(option => {
-            if (!option.value) return;
-            option.hidden = region && option.dataset.region !== region;
-        });
-        villeSelect.value = '';
+        renderVilles(region);
         filterBesoins();
         filterRestants();
     }
 
     function filterBesoins() {
         const ville = villeSelect.value;
+        const type = typeSelect.value;
         Array.from(besoinMateriaux.options).forEach(option => {
             if (!option.value) return;
-            option.hidden = ville && option.dataset.ville !== ville;
+            const categorie = String(option.dataset.categorie || '').toLowerCase();
+            const villeMatch = !ville || option.dataset.ville === ville;
+            const typeMatch = (type === 'naturels' && (categorie === 'nature' || categorie === 'naturel' || categorie === 'naturels')) ||
+                             (type === 'materiaux' && (categorie === 'materiaux' || categorie === 'materiel' || categorie === 'materiaux')) ||
+                             (!type || type === 'argent');
+            option.hidden = !(villeMatch && typeMatch);
         });
         Array.from(besoinArgent.options).forEach(option => {
             if (!option.value) return;
@@ -170,7 +194,7 @@
         if (typeSelect.value === 'argent') {
             besoinMateriauxBlock.classList.add('d-none');
             besoinArgentBlock.classList.remove('d-none');
-        } else if (typeSelect.value === 'materiaux') {
+        } else if (typeSelect.value === 'materiaux' || typeSelect.value === 'naturels') {
             besoinArgentBlock.classList.add('d-none');
             besoinMateriauxBlock.classList.remove('d-none');
         } else {
@@ -185,6 +209,7 @@
         filterRestants();
     });
     typeSelect.addEventListener('change', toggleType);
+    renderVilles('');
     filterVilles();
     toggleType();
 </script>

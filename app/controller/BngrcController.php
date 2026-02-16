@@ -146,31 +146,45 @@ class BngrcController
 
     public function submitInsertionDon()
     {
-        $type = $_POST['type_don'] ?? '';
-        $quantite = isset($_POST['quantite']) ? (float)$_POST['quantite'] : 0;
         $error = null;
         $message = null;
+        $successCount = 0;
 
-        if ($quantite <= 0) {
-            $error = 'La quantite doit etre superieure a 0.';
-        } elseif ($type === 'materiaux') {
-            $id_besoin = (int)($_POST['id_besoin'] ?? 0);
-            if ($id_besoin <= 0) {
-                $error = 'Veuillez selectionner un besoin materiel.';
-            } else {
-                $this->model->insertDonMateriaux($id_besoin, $quantite);
-                $message = 'Don materiel enregistre avec succes.';
-            }
-        } elseif ($type === 'argent') {
-            $id_besoin_argent = (int)($_POST['id_besoin_argent'] ?? 0);
-            if ($id_besoin_argent <= 0) {
-                $error = 'Veuillez selectionner un besoin en argent.';
-            } else {
-                $this->model->insertDonArgent($id_besoin_argent, $quantite);
-                $message = 'Don en argent enregistre avec succes.';
-            }
+        // Récupérer les dons en JSON
+        $donsJson = $_POST['dons_json'] ?? '[]';
+        $dons = json_decode($donsJson, true);
+
+        if (!is_array($dons) || empty($dons)) {
+            $error = 'Aucun don à enregistrer.';
         } else {
-            $error = 'Type de don invalide.';
+            foreach ($dons as $don) {
+                $type = $don['type'] ?? '';
+                $quantite = isset($don['quantite']) ? (float)$don['quantite'] : 0;
+
+                if ($quantite <= 0) {
+                    continue;
+                }
+
+                if ($type === 'naturels' || $type === 'materiaux') {
+                    $id_besoin = (int)($don['besoin']['id_besoin'] ?? 0);
+                    if ($id_besoin > 0) {
+                        $this->model->insertDonMateriaux($id_besoin, $quantite);
+                        $successCount++;
+                    }
+                } elseif ($type === 'argent') {
+                    $id_besoin_argent = (int)($don['besoin']['id_besoin_argent'] ?? 0);
+                    if ($id_besoin_argent > 0) {
+                        $this->model->insertDonArgent($id_besoin_argent, $quantite);
+                        $successCount++;
+                    }
+                }
+            }
+
+            if ($successCount > 0) {
+                $message = "$successCount don(s) enregistre(s) avec succes.";
+            } else {
+                $error = 'Erreur lors de l\'enregistrement des dons.';
+            }
         }
 
         $data = [
@@ -213,7 +227,7 @@ class BngrcController
 
         if ($quantite <= 0) {
             $error = 'La quantite doit etre superieure a 0.';
-        } elseif ($type === 'materiaux') {
+        } elseif ($type === 'naturels' || $type === 'materiaux') {
             $id_besoin = (int)($_POST['id_besoin'] ?? 0);
             if ($id_besoin <= 0) {
                 $error = 'Veuillez selectionner un besoin materiel.';
@@ -223,7 +237,8 @@ class BngrcController
                     $error = 'Quantite superieure au restant disponible.';
                 } else {
                     $this->model->insertDonMateriaux($id_besoin, $quantite);
-                    $message = 'Attribution materielle enregistree avec succes.';
+                    $typeLabel = $type === 'naturels' ? 'naturelle' : 'materielle';
+                    $message = "Attribution $typeLabel enregistree avec succes.";
                 }
             }
         } elseif ($type === 'argent') {

@@ -1,10 +1,24 @@
 <?php include 'header.php'; ?>
 
+<style>
+    .ville-hero-image {
+        height: 400px;
+        object-fit: cover;
+        width: 100%;
+    }
+</style>
+
 <div class="container py-5">
     <div class="row mb-4">
         <div class="col-12">
             <a href="/accueil" class="btn btn-secondary mb-3">← Retour a l'accueil</a>
             <h1 class="mb-1">Ville: <?php echo htmlspecialchars($ville['nom_ville'] ?? 'Inconnue'); ?></h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <img src="<?php echo htmlspecialchars($ville['image_path'] ?? '/images/ville-default.jpg'); ?>" class="img-fluid rounded ville-hero-image" alt="Ville">
         </div>
     </div>
 

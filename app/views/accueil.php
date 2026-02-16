@@ -3,7 +3,7 @@
 <style>
     .hero-section {
         background: linear-gradient(rgba(44, 62, 80, 0.7), rgba(44, 62, 80, 0.7)), 
-                    url('/images/hero-background.jpg') center/cover no-repeat;
+                    url('/images/accueil.jpg') center/cover no-repeat;
         height: 500px;
         display: flex;
         align-items: center;
@@ -36,6 +36,11 @@
         font-size: 2.5rem;
         font-weight: bold;
         color: #2c3e50;
+    }
+    .card-img-top {
+        height: 250px;
+        object-fit: cover;
+        width: 100%;
     }
 </style>
 
@@ -97,7 +102,7 @@
                 <div class="col-md-4 mb-4">
                     <a class="text-decoration-none" href="/ville-detail/<?php echo $ville['id_ville']; ?>">
                         <div class="card h-100">
-                            <img src="/images/ville-default.jpg" class="card-img-top" alt="Ville">
+                            <img src="<?php echo htmlspecialchars($ville['image_path'] ?? '/images/ville-default.jpg'); ?>" class="card-img-top" alt="Ville">
                             <div class="card-body">
                                 <h5 class="card-title mb-0"><?php echo htmlspecialchars($ville['nom_ville']); ?></h5>
                             </div>
