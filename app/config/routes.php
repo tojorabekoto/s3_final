@@ -28,11 +28,3 @@ Flight::route('POST /attribution',      [$controller, 'submitAttribution']);
 
 Flight::route('GET /',                  [$controller, 'dashboard']);
 Flight::route('GET /accueil',           [$controller, 'dashboard']);
-
-// API routes (JSON) for AJAX views
-Flight::group('/api', function() use ($controller) {
-	Flight::route('GET /regions',               [$controller, 'apiGetRegions']);
-	Flight::route('GET /villes',                [$controller, 'apiGetVilles']);
-	Flight::route('GET /villes/@id',            [$controller, 'apiGetVillesByRegion']);
-	Flight::route('GET /besoins-by-ville/@id',  [$controller, 'apiGetBesoinsByVille']);
-});
