@@ -11,6 +11,7 @@ Flight::route('GET /villes',            [$controller, 'getVilles']);
 Flight::route('GET /region/@id',        [$controller, 'getVillesByRegion']);
 Flight::route('GET /sinistres',         [$controller, 'getSinistres']);
 Flight::route('GET /ville/@id/sinistres',[$controller, 'getSinistresByVille']);
+Flight::route('GET /ville-detail/@id',  [$controller, 'villeDetail']);
 
 Flight::route('GET /besoins/materiaux', [$controller, 'getBesoinsMateriaux']);
 Flight::route('GET /besoin/@id/dons',   [$controller, 'getDonsMateriaux']);

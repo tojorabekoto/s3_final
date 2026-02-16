@@ -62,6 +62,24 @@ class BngrcController
         ]);
     }
 
+    public function villeDetail($id_ville)
+    {
+        $id_ville = (int)$id_ville;
+        $ville = $this->model->getVilleById($id_ville);
+
+        $data = [
+            'ville' => $ville,
+            'besoins_materiaux' => $this->model->getBesoinsMateriauxByVille($id_ville),
+            'dons_materiaux' => $this->model->getDonsMateriauxByVille($id_ville),
+            'restant_materiaux' => $this->model->getRestantMateriauxByVille($id_ville),
+            'besoins_argent' => $this->model->getBesoinsArgentByVille($id_ville),
+            'dons_argent' => $this->model->getDonsArgentByVille($id_ville),
+            'restant_argent' => $this->model->getRestantArgentByVille($id_ville)
+        ];
+
+        Flight::render('ville_detail', $data);
+    }
+
     // ────────────────────────────────────────────────
     // Besoins Matériaux
     // ────────────────────────────────────────────────
@@ -120,7 +138,8 @@ class BngrcController
             'nb_sinistres'       => count($this->model->getSinistres()),
             'nb_besoins_mat'     => count($this->model->getBesoinMateriaux()),
             'nb_besoins_argent'  => count($this->model->getBesoinArgent()),
-            'categories'         => $this->model->getCategoriesBesoin()
+            'categories'         => $this->model->getCategoriesBesoin(),
+            'villes'             => $this->model->getVilles()
         ];
 
         Flight::render('accueil', $data);

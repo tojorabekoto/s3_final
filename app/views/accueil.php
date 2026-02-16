@@ -87,6 +87,30 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Villes concernées</h3>
+        </div>
+        <?php if (!empty($villes)): ?>
+            <?php foreach ($villes as $ville): ?>
+                <div class="col-md-4 mb-4">
+                    <a class="text-decoration-none" href="/ville-detail/<?php echo $ville['id_ville']; ?>">
+                        <div class="card h-100">
+                            <img src="/images/ville-default.jpg" class="card-img-top" alt="Ville">
+                            <div class="card-body">
+                                <h5 class="card-title mb-0"><?php echo htmlspecialchars($ville['nom_ville']); ?></h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-12">
+                <p class="text-muted">Aucune ville disponible pour le moment.</p>
+            </div>
+        <?php endif; ?>
+    </div>
 </main>
 
 <?php include 'footer.php'; ?>
