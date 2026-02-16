@@ -33,3 +33,37 @@ les vues :
 
 git pull --no-rebase
 
+
+
+-views:
+    -header.php:
+        -logo img de bngrc 
+        -menu:
+            -accueil (redirection vers accueil.php)
+            -besoins (redirection vers insertion_besoin.php)
+            -dons (redirection vers insertion_don.php)
+            -attribition (redirection vers attribution.php)
+    
+    -footer.php:
+        -logo img de bngrc
+        -info de contact, email, adresse, numero de telephone
+        -reseaux sociaux : facebook, twitter, instagram (juste iconne)
+        -a droite, menu : 
+            -accueil
+            -besoins
+            -dons
+            -attribition
+        -copyright : BNGRC 2026
+
+    -accueil.php:
+        - (header.php)
+        -une grande image de fond (peut etre une image de sinistré ou une image de la région)
+        -un message de bienvenue : "Bienvenue sur le site de collecte et distribution de dons du BNGRC"
+        -dashboard (information):
+            -ville 
+            -besoin initiaux
+            -dons actuels
+            -restant
+        -(footer.php)
+        
+
