@@ -59,11 +59,62 @@ git pull --no-rebase
         - (header.php)
         -une grande image de fond (peut etre une image de sinistré ou une image de la région)
         -un message de bienvenue : "Bienvenue sur le site de collecte et distribution de dons du BNGRC"
-        -dashboard (information):
-            -ville 
-            -besoin initiaux
-            -dons actuels
-            -restant
-        -(footer.php)
+        -bloc de chaque ville: (redirection vers la page de la ville correspondante => ville_details.php)
+            -image de ville
+            -titre nom de ville
+        - (footer.php)
+
+    -ville_detail.php:
+        - (header.php)
+        - nom de la ville
+        -besoins initiaux:
+            - bloque de chaque besoin : 
+                -categorie : riz, huile, materiaux, argent
+                -quantite
+            -dons attribues:
+                - bloque de chaque dons fait : 
+                -categorie : riz, huile, materiaux, argent
+                -quantite
+            -Restant a attribuer : 
+                - bloque de chaque besoin restant : 
+                -categorie : riz, huile, materiaux, argent
+                -quantite
+        - (footer.php)
+
+    -insertion_don.php:
+        - (header.php)
+        -titre "faites un don"
+        -description "saisissez les informations de votre don"
+        -formulaire de saisie de don :
+        -region : liste deroulante des regions
+        -ville : liste deroulante des villes selon la region choisie
+        -categorie : liste deroulante des categories de besoin (riz, huile, materiaux, argent)
+        -quantite : input de type number 
+        -bouton "enregistrer" : pour enregistrer le don dans la base de données
+        - (footer.php)
+
+    -attribution.php:
+        - (header.php)
+        - bloc a gauche :
+            - categorie : nature, materiaux, argent
+            - bloque de chaque besoin par categorie: 
+                -nature: riz, huile, ...
+                -materiaux : tole, clou, ...
+                -argent :
+            -quantite
+        - bloc a droite :
+            - champ d'insertion de don: 
+                -region : liste deroulante des regions
+                -ville : liste deroulante des villes selon la region choisie
+                -categorie : liste deroulante des categories de besoin (riz, huile, materiaux, argent)
+                -quantite : input de type number
+            -bouton "attribuer" : pour attribuer le don au besoin correspondant dans la base de données
+            nb: On affiche une erreur si la quantité donnée est supérieur aux dons. Ex: on a 100000Ar, et on donne 300000Ar
+            la logique de l'attribution de don: plus les don sont attribue aux sinistrer, plus le besoin restant a attribuer diminue et plus les dons attribués au depart diminuent
+        - (footer.php)
+        
+
+            
+            
         
 
