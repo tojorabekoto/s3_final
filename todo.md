@@ -82,7 +82,7 @@ git pull --no-rebase
         - (footer.php)
 
     -insertion_don.php:
-        w tojo 
+        w
         -2em page (dons.php)
         Page donner les dons pour un besoin
 
