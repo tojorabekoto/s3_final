@@ -16,6 +16,9 @@
 /**********************************************
  *         Application Environment            *
  **********************************************/
+// Define directory separator
+$ds = DIRECTORY_SEPARATOR;
+
 // Set your timezone (e.g., 'America/New_York', 'UTC')
 date_default_timezone_set('UTC');
 
@@ -43,14 +46,14 @@ if (empty($app) === true) {
 
 // This autoloads your code in the app directory so you don't have to require_once everything
 // You'll need to namespace your classes with "app\folder\" to include them properly
-$app->path(__DIR__ . $ds . '..' . $ds . '..');
+$app->path(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..');
 
 // Core config variables
 $app->set('flight.base_url', '/',);           // Base URL for your app. Change if app is in a subdirectory (e.g., '/myapp/')
 $app->set('flight.case_sensitive', false);    // Set true for case sensitive routes. Default: false
 $app->set('flight.log_errors', true);         // Log errors to file. Recommended: true in production
 $app->set('flight.handle_errors', false);     // Let Tracy handle errors if false. Set true to use Flight's error handler
-$app->set('flight.views.path', __DIR__ . $ds . '..' . $ds . 'views'); // Path to views/templates
+$app->set('flight.views.path', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'views'); // Path to views/templates
 $app->set('flight.views.extension', '.php');  // View file extension (e.g., '.php', '.latte')
 $app->set('flight.content_length', false);    // Send content length header. Usually false unless required by proxy
 
@@ -67,10 +70,10 @@ return [
 	 **************************************/
 	'database' => [
 		// MySQL Example:
-		// 'host'     => 'localhost',      // Database host (e.g., 'localhost', 'db.example.com')
-		// 'dbname'   => 'your_db_name',   // Database name (e.g., 'flightphp')
-		// 'user'     => 'your_username',  // Database user (e.g., 'root')
-		// 'password' => 'your_password',  // Database password (never commit real passwords)
+		'host'     => 'localhost',      // Database host (e.g., 'localhost', 'db.example.com')
+		 'dbname'   => 'bngrc',   // Database name (e.g., 'flightphp')
+		 'user'     => 'root',  // Database user (e.g., 'root')
+		 'password' => 'root',  // Database password (never commit real passwords)
 
 		// SQLite Example:
 		// 'file_path' => __DIR__ . $ds . '..' . $ds . 'database.sqlite', // Path to SQLite file
