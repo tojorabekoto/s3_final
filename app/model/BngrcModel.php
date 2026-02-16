@@ -88,11 +88,11 @@ class BngrcModel {
     public function getDonsMateriauxByVille($id_ville) {
         $stmt = $this->db->prepare(
             "SELECT bm.id_besoin, cb.nom AS categorie, bm.nom_besoin,
-                    COALESCE(SUM(dm.quantite_donnee), 0) AS quantite_donnee, bm.unite
-             FROM besoin_materiaux bm
+                    SUM(dm.quantite_donnee) AS quantite_donnee, bm.unite
+             FROM don_materiaux dm
+             JOIN besoin_materiaux bm ON dm.id_besoin = bm.id_besoin
              JOIN sinistre s ON s.id_sinistre = bm.id_sinistre
              JOIN categorie_besoin cb ON cb.id_categorie = bm.id_categorie
-             LEFT JOIN don_materiaux dm ON dm.id_besoin = bm.id_besoin
              WHERE s.id_ville = ?
              GROUP BY bm.id_besoin, cb.nom, bm.nom_besoin, bm.unite
              ORDER BY bm.id_besoin"
@@ -132,10 +132,10 @@ class BngrcModel {
     public function getDonsArgentByVille($id_ville) {
         $stmt = $this->db->prepare(
             "SELECT ba.id_besoin_argent,
-                    COALESCE(SUM(da.montant_donne), 0) AS montant_donne
-             FROM besoin_argent ba
+                    SUM(da.montant_donne) AS montant_donne
+             FROM don_argent da
+             JOIN besoin_argent ba ON da.id_besoin_argent = ba.id_besoin_argent
              JOIN sinistre s ON s.id_sinistre = ba.id_sinistre
-             LEFT JOIN don_argent da ON da.id_besoin_argent = ba.id_besoin_argent
              WHERE s.id_ville = ?
              GROUP BY ba.id_besoin_argent
              ORDER BY ba.id_besoin_argent"
