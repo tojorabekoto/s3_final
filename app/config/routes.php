@@ -1,6 +1,6 @@
 <?php
 
-require 'vendor/autoload.php';
+require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 Flight::register('db', 'PDO', ['mysql:host=localhost;dbname=bngrc', 'root', ''], function($pdo) {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
