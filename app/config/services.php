@@ -64,7 +64,7 @@ use Tracy\Debugger;
 Debugger::enable(); // Auto-detects environment
 // Debugger::enable(Debugger::Development); // Explicitly set environment
 // Debugger::enable('23.75.345.200'); // Restrict debug bar to specific IPs
-Debugger::$logDirectory = __DIR__ . $ds . '..' . $ds . 'log'; // Log directory
+Debugger::$logDirectory = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'log'; // Log directory
 Debugger::$strictMode = true; // Show all errors (set to E_ALL & ~E_DEPRECATED for less noise)
 // Debugger::$maxLen = 1000; // Max length of dumped variables (default: 150)
 // Debugger::$maxDepth = 5; // Max depth of dumped structures (default: 3)

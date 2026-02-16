@@ -1,4 +1,9 @@
 <?php
+
+namespace app\model;
+
+use PDO;
+
 class BngrcModel {
 
     private $db;

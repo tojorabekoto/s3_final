@@ -28,6 +28,7 @@ class ComposerStaticInit4b3a253f57d31d773b6986822b8dc6cf
         'A' =>
         array (
             'Ahc\\Cli\\' => 8,
+            'app\\' => 4,
         ),
     );
 
@@ -48,6 +49,10 @@ class ComposerStaticInit4b3a253f57d31d773b6986822b8dc6cf
         'Ahc\\Cli\\' =>
         array (
             0 => __DIR__ . '/..' . '/adhocore/cli/src',
+        ),
+        'app\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/..' . '/app',
         ),
     );
 

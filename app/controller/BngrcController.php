@@ -1,8 +1,9 @@
 <?php
 
-namespace app\controllers;
+namespace app\controller;
 
 use Flight;
+use app\model\BngrcModel;
 
 class BngrcController
 {
@@ -11,7 +12,7 @@ class BngrcController
     public function __construct()
     {
         // Instanciation du modèle une seule fois par requête
-        $this->model = new \BngrcModel(Flight::db());
+        $this->model = new BngrcModel(Flight::db());
     }
 
     // ────────────────────────────────────────────────
