@@ -128,6 +128,36 @@ class BngrcController
     }
 
     // ────────────────────────────────────────────────
+    // API JSON endpoints used by AJAX views
+    // ────────────────────────────────────────────────
+    public function apiGetRegions()
+    {
+        $regions = $this->model->getRegions();
+        Flight::json($regions, 200, true, 'utf-8', JSON_PRETTY_PRINT);
+    }
+
+    public function apiGetVilles()
+    {
+        $villes = $this->model->getVilles();
+        Flight::json($villes, 200, true, 'utf-8', JSON_PRETTY_PRINT);
+    }
+
+    public function apiGetVillesByRegion($id_region)
+    {
+        $id_region = (int)$id_region;
+        $villes = $this->model->getVillesByRegion($id_region);
+        Flight::json($villes, 200, true, 'utf-8', JSON_PRETTY_PRINT);
+    }
+
+    public function apiGetBesoinsByVille($id_ville)
+    {
+        $id_ville = (int)$id_ville;
+        $materiaux = $this->model->getBesoinsMateriauxByVille($id_ville);
+        $argent = $this->model->getBesoinsArgentByVille($id_ville);
+        Flight::json(['materiaux' => $materiaux, 'argent' => $argent], 200, true, 'utf-8', JSON_PRETTY_PRINT);
+    }
+
+    // ────────────────────────────────────────────────
     // Insertion de don
     // ────────────────────────────────────────────────
     public function showInsertionDon()

@@ -82,16 +82,28 @@ git pull --no-rebase
         - (footer.php)
 
     -insertion_don.php:
-        - (header.php)
-        -titre "faites un don"
-        -description "saisissez les informations de votre don"
-        -formulaire de saisie de don :
-        -region : liste deroulante des regions
-        -ville : liste deroulante des villes selon la region choisie
-        -categorie : liste deroulante des categories de besoin (riz, huile, materiaux, argent)
-        -quantite : input de type number 
-        -bouton "enregistrer" : pour enregistrer le don dans la base de données
-        - (footer.php)
+        w
+        -2em page (dons.php)
+        Page donner les dons pour un besoin
+
+        ok    -Form
+                - dropdown (region, ville)   
+                    > tableau dinamique (selection checkbox > creation field en dessous pour completer)
+                        - besoin (cat et detail) (en forme de l ien qui va ouvrir un field)
+                - field pour besoin argent 
+                -Bouton valider
+                
+            -/Form
+
+        ok    -info requis ! 
+            > region, ville, sinistres, besoin > cat et detail  
+            model > controller > route avec data > view
+            
+        ok    -Fonction (affichage)
+                getRegion, getVilleByRegion, getSinistresByVille
+                getBesoinBySinitres, getMateriauxBycat
+
+        wait    -Fonction (insertion)
 
     -attribution.php:
         - (header.php)
