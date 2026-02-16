@@ -28,3 +28,5 @@ On saisie les besoins des sinistrés par ville (on n'identifie pas personnelleme
 					
 		
 				
+les vues : 
+    accueil.php : une grande image popur le font 
