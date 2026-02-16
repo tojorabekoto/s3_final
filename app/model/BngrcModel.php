@@ -219,5 +219,66 @@ class BngrcModel {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['montant_restant'] : 0.0;
     }
+
+    // ──────────────────────────────────────────────────────────
+    // Stock global de dons (non attribués)
+    // ──────────────────────────────────────────────────────────
+    
+    public function insertDonStockMateriel($id_categorie, $nom_produit, $quantite, $unite) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO don_stock_materiel (id_categorie, nom_produit, quantite_disponible, unite) 
+             VALUES (?, ?, ?, ?)"
+        );
+        $stmt->execute([$id_categorie, $nom_produit, $quantite, $unite]);
+        return $this->db->lastInsertId();
+    }
+
+    public function insertDonStockArgent($montant) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO don_stock_argent (montant_disponible) VALUES (?)"
+        );
+        $stmt->execute([$montant]);
+        return $this->db->lastInsertId();
+    }
+
+    public function getStockMateriel() {
+        $stmt = $this->db->query(
+            "SELECT s.*, c.nom AS categorie 
+             FROM don_stock_materiel s
+             JOIN categorie_besoin c ON c.id_categorie = s.id_categorie
+             WHERE s.quantite_disponible > 0
+             ORDER BY s.date_don DESC"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getStockArgent() {
+        $stmt = $this->db->query(
+            "SELECT * FROM don_stock_argent 
+             WHERE montant_disponible > 0
+             ORDER BY date_don DESC"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function diminuerStockMateriel($id_stock, $quantite) {
+        $stmt = $this->db->prepare(
+            "UPDATE don_stock_materiel 
+             SET quantite_disponible = quantite_disponible - ?
+             WHERE id_stock = ? AND quantite_disponible >= ?"
+        );
+        $stmt->execute([$quantite, $id_stock, $quantite]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function diminuerStockArgent($id_stock_argent, $montant) {
+        $stmt = $this->db->prepare(
+            "UPDATE don_stock_argent 
+             SET montant_disponible = montant_disponible - ?
+             WHERE id_stock_argent = ? AND montant_disponible >= ?"
+        );
+        $stmt->execute([$montant, $id_stock_argent, $montant]);
+        return $stmt->rowCount() > 0;
+    }
 }
 ?>

@@ -48,6 +48,26 @@ CREATE TABLE besoin_argent (
     ON DELETE CASCADE
 );
 
+-- Stock global des dons matériels (non attribués)
+CREATE TABLE don_stock_materiel (
+    id_stock INT AUTO_INCREMENT PRIMARY KEY,
+    id_categorie INT NOT NULL,
+    nom_produit VARCHAR(100) NOT NULL,
+    quantite_disponible DECIMAL(10,2) NOT NULL,
+    unite VARCHAR(50),
+    date_don TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_categorie) REFERENCES categorie_besoin(id_categorie)
+    ON DELETE CASCADE
+);
+
+-- Stock global des dons en argent (non attribués)
+CREATE TABLE don_stock_argent (
+    id_stock_argent INT AUTO_INCREMENT PRIMARY KEY,
+    montant_disponible DECIMAL(15,2) NOT NULL,
+    date_don TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Attributions de dons matériels à des besoins spécifiques
 CREATE TABLE don_materiaux (
     id_don INT AUTO_INCREMENT PRIMARY KEY,
     id_besoin INT NOT NULL,
@@ -57,6 +77,7 @@ CREATE TABLE don_materiaux (
     ON DELETE CASCADE
 );
 
+-- Attributions de dons en argent à des besoins spécifiques
 CREATE TABLE don_argent (
     id_don INT AUTO_INCREMENT PRIMARY KEY,
     id_besoin_argent INT NOT NULL,

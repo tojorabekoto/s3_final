@@ -128,20 +128,17 @@ class BngrcController
     }
 
     // ────────────────────────────────────────────────
-    // Insertion de don
+    // Insertion de don dans le stock global
     // ────────────────────────────────────────────────
     public function showInsertionDon()
     {
         $data = [
-            'regions' => $this->model->getRegions(),
-            'villes' => $this->model->getVilles(),
-            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
-            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'categories' => $this->model->getCategoriesBesoin(),
             'message' => null,
             'error' => null
         ];
 
-        Flight::render('insertion_don', $data);
+        Flight::render('insertion_don_new', $data);
     }
 
     public function submitInsertionDon()
@@ -166,37 +163,35 @@ class BngrcController
                 }
 
                 if ($type === 'naturels' || $type === 'materiaux') {
-                    $id_besoin = (int)($don['besoin']['id_besoin'] ?? 0);
-                    if ($id_besoin > 0) {
-                        $this->model->insertDonMateriaux($id_besoin, $quantite);
+                    // Trouver l'ID de catégorie
+                    $id_categorie = $type === 'naturels' ? 1 : 2; // 1=Nature, 2=Materiaux
+                    $nom_produit = $don['nom_produit'] ?? '';
+                    $unite = $don['unite'] ?? '';
+                    
+                    if ($nom_produit && $unite) {
+                        $this->model->insertDonStockMateriel($id_categorie, $nom_produit, $quantite, $unite);
                         $successCount++;
                     }
                 } elseif ($type === 'argent') {
-                    $id_besoin_argent = (int)($don['besoin']['id_besoin_argent'] ?? 0);
-                    if ($id_besoin_argent > 0) {
-                        $this->model->insertDonArgent($id_besoin_argent, $quantite);
-                        $successCount++;
-                    }
+                    $this->model->insertDonStockArgent($quantite);
+                    $successCount++;
                 }
             }
 
             if ($successCount > 0) {
-                $message = "$successCount don(s) enregistre(s) avec succes.";
+                $message = "$successCount don(s) ajouté(s) au stock global avec succès.";
             } else {
                 $error = 'Erreur lors de l\'enregistrement des dons.';
             }
         }
 
         $data = [
-            'regions' => $this->model->getRegions(),
-            'villes' => $this->model->getVilles(),
-            'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
-            'besoins_argent' => $this->model->getBesoinsArgentForForm(),
+            'categories' => $this->model->getCategoriesBesoin(),
             'message' => $message,
             'error' => $error
         ];
 
-        Flight::render('insertion_don', $data);
+        Flight::render('insertion_don_new', $data);
     }
 
     // ────────────────────────────────────────────────
@@ -209,13 +204,13 @@ class BngrcController
             'villes' => $this->model->getVilles(),
             'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
             'besoins_argent' => $this->model->getBesoinsArgentForForm(),
-            'restant_materiaux' => [],
-            'restant_argent' => [],
+            'stock_materiel' => $this->model->getStockMateriel(),
+            'stock_argent' => $this->model->getStockArgent(),
             'message' => null,
             'error' => null
         ];
 
-        Flight::render('attribution', $data);
+        Flight::render('attribution_new', $data);
     }
 
     public function submitAttribution()
@@ -228,30 +223,45 @@ class BngrcController
         if ($quantite <= 0) {
             $error = 'La quantite doit etre superieure a 0.';
         } elseif ($type === 'naturels' || $type === 'materiaux') {
+            $id_stock = (int)($_POST['id_stock'] ?? 0);
             $id_besoin = (int)($_POST['id_besoin'] ?? 0);
-            if ($id_besoin <= 0) {
-                $error = 'Veuillez selectionner un besoin materiel.';
+            
+            if ($id_stock <= 0 || $id_besoin <= 0) {
+                $error = 'Veuillez selectionner un stock et un besoin.';
             } else {
                 $restant = $this->model->getRestantMateriauxByBesoin($id_besoin);
                 if ($quantite > $restant) {
-                    $error = 'Quantite superieure au restant disponible.';
+                    $error = 'Quantite superieure au restant disponible du besoin.';
                 } else {
-                    $this->model->insertDonMateriaux($id_besoin, $quantite);
-                    $typeLabel = $type === 'naturels' ? 'naturelle' : 'materielle';
-                    $message = "Attribution $typeLabel enregistree avec succes.";
+                    // Diminuer le stock
+                    if ($this->model->diminuerStockMateriel($id_stock, $quantite)) {
+                        // Créer l'attribution
+                        $this->model->insertDonMateriaux($id_besoin, $quantite);
+                        $message = "Attribution reussie: $quantite unites attribuees.";
+                    } else {
+                        $error = 'Stock insuffisant pour cette quantite.';
+                    }
                 }
             }
         } elseif ($type === 'argent') {
+            $id_stock_argent = (int)($_POST['id_stock_argent'] ?? 0);
             $id_besoin_argent = (int)($_POST['id_besoin_argent'] ?? 0);
-            if ($id_besoin_argent <= 0) {
-                $error = 'Veuillez selectionner un besoin en argent.';
+            
+            if ($id_stock_argent <= 0 || $id_besoin_argent <= 0) {
+                $error = 'Veuillez selectionner un stock et un besoin.';
             } else {
                 $restant = $this->model->getRestantArgentByBesoin($id_besoin_argent);
                 if ($quantite > $restant) {
-                    $error = 'Montant superieur au restant disponible.';
+                    $error = 'Montant superieur au restant disponible du besoin.';
                 } else {
-                    $this->model->insertDonArgent($id_besoin_argent, $quantite);
-                    $message = 'Attribution en argent enregistree avec succes.';
+                    // Diminuer le stock
+                    if ($this->model->diminuerStockArgent($id_stock_argent, $quantite)) {
+                        // Créer l'attribution
+                        $this->model->insertDonArgent($id_besoin_argent, $quantite);
+                        $message = "Attribution reussie: ".number_format($quantite, 0, ',', ' ')." Ar attribues.";
+                    } else {
+                        $error = 'Stock insuffisant pour ce montant.';
+                    }
                 }
             }
         } else {
@@ -263,13 +273,13 @@ class BngrcController
             'villes' => $this->model->getVilles(),
             'besoins_materiaux' => $this->model->getBesoinsMateriauxForForm(),
             'besoins_argent' => $this->model->getBesoinsArgentForForm(),
-            'restant_materiaux' => [],
-            'restant_argent' => [],
+            'stock_materiel' => $this->model->getStockMateriel(),
+            'stock_argent' => $this->model->getStockArgent(),
             'message' => $message,
             'error' => $error
         ];
 
-        Flight::render('attribution', $data);
+        Flight::render('attribution_new', $data);
     }
 
     // ────────────────────────────────────────────────
