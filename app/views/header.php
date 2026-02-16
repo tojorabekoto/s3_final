@@ -42,7 +42,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container-fluid">
                 <a class="navbar-brand" href="<?php echo '/accueil'; ?>">
-                    <img src="/images/bngrc-logo.png" alt="BNGRC Logo" />
+                    <img src="/images/logo.png" alt="BNGRC Logo" />
                     <span>BNGRC</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

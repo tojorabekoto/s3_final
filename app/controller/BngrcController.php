@@ -123,6 +123,6 @@ class BngrcController
             'categories'         => $this->model->getCategoriesBesoin()
         ];
 
-        Flight::render('dashboard', $data);
+        Flight::render('accueil', $data);
     }
 }

@@ -50,30 +50,30 @@
     <div class="row">
         <div class="col-md-3 mb-4">
             <div class="dashboard-card">
-                <h5>Ville</h5>
-                <div class="number">15</div>
-                <p>villes couverts</p>
+                <h5>Villes</h5>
+                <div class="number"><?php echo isset($nb_villes) ? $nb_villes : 0; ?></div>
+                <p>villes couvertes</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
             <div class="dashboard-card">
-                <h5>Besoins Initiaux</h5>
-                <div class="number">1,250</div>
+                <h5>Sinistres</h5>
+                <div class="number"><?php echo isset($nb_sinistres) ? $nb_sinistres : 0; ?></div>
                 <p>personnes sinistrées</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
             <div class="dashboard-card">
-                <h5>Dons Actuels</h5>
-                <div class="number">850</div>
-                <p>articles reçus</p>
+                <h5>Besoins Matériaux</h5>
+                <div class="number"><?php echo isset($nb_besoins_mat) ? $nb_besoins_mat : 0; ?></div>
+                <p>besoins enregistrés</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
             <div class="dashboard-card">
-                <h5>Restant</h5>
-                <div class="number">400</div>
-                <p>articles en attente</p>
+                <h5>Besoins en Argent</h5>
+                <div class="number"><?php echo isset($nb_besoins_argent) ? $nb_besoins_argent : 0; ?></div>
+                <p>demandes financières</p>
             </div>
         </div>
     </div>

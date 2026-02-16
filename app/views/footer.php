@@ -4,14 +4,15 @@
                 <!-- Logo et Info -->
                 <div class="col-md-4 mb-4">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="/images/bngrc-logo.png" alt="BNGRC Logo" style="height: 50px; width: auto; margin-right: 1rem;">
+                        <img src="/images/logo.png" alt="BNGRC Logo" style="height: 50px; width: auto; margin-right: 1rem;">
                         <span class="fs-5 fw-bold">BNGRC</span>
                     </div>
                     <h6>Informations de Contact</h6>
                     <p>
                         <i class="fas fa-envelope"></i> email@bngrc.mg<br>
-                        <i class="fas fa-phone"></i> +261 XX XXX XX XX<br>
-                        <i class="fas fa-map-marker-alt"></i> Antananarivo, Madagascar
+                        <i class="fas fa-phone"></i> +261 34 05 480 68<br>
+                        <i class="fas fa-map-marker-alt"></i> Avaratra Antanimora Route Mausolée
+Antananarivo 101 - Madagascar
                     </p>
                 </div>
 
