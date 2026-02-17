@@ -21,10 +21,31 @@ Flight::route('GET /besoin-argent/@id/dons', [$controller, 'getDonsArgent']);
 
 Flight::route('GET /categories',        [$controller, 'getCategoriesBesoin']);
 
+// API JSON — sinistres d'une ville (utilisé par le formulaire insertion_besoin)
+Flight::route('GET /api/sinistres-ville/@id', [$controller, 'getSinistresByVilleJson']);
+
+// API JSON — pour AJAX (dons + achat)
+Flight::route('GET /api/villes/@id',            [$controller, 'apiGetVillesByRegion']);
+Flight::route('GET /api/besoins-by-ville/@id',  [$controller, 'apiGetBesoinsByVille']);
+Flight::route('GET /api/inventaire/@id',        [$controller, 'apiGetInventaireByVille']);
+
+// Routes pour insertion de besoins
+Flight::route('GET /insertion_besoin',  [$controller, 'showInsertionBesoin']);
+Flight::route('POST /insertion_besoin', [$controller, 'submitInsertionBesoin']);
+
 Flight::route('GET /insertion_don',     [$controller, 'showInsertionDon']);
 Flight::route('POST /insertion_don',    [$controller, 'submitInsertionDon']);
+
+// Routes pour achat de matériaux
+Flight::route('GET /achat',             [$controller, 'showAchat']);
+Flight::route('POST /achat',            [$controller, 'submitAchat']);
+
 Flight::route('GET /attribution',       [$controller, 'showAttribution']);
 Flight::route('POST /attribution',      [$controller, 'submitAttribution']);
+
+// Récapitulation
+Flight::route('GET /recap',             [$controller, 'showRecap']);
+Flight::route('GET /api/recap',         [$controller, 'apiGetRecapData']);
 
 Flight::route('GET /',                  [$controller, 'dashboard']);
 Flight::route('GET /accueil',           [$controller, 'dashboard']);

@@ -2,7 +2,7 @@
 
 <style>
     .hero-section {
-        background: linear-gradient(rgba(44, 62, 80, 0.7), rgba(44, 62, 80, 0.7)), 
+        background: linear-gradient(rgba(10, 25, 41, 0.7), rgba(26, 47, 69, 0.7)), 
                     url('/images/hero-background.jpg') center/cover no-repeat;
         height: 500px;
         display: flex;
@@ -15,27 +15,35 @@
         font-size: 3rem;
         font-weight: bold;
         margin-bottom: 1rem;
+        color: #ff6b35;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     }
     .dashboard {
         margin: 3rem 0;
     }
     .dashboard-card {
         background: white;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 2rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         text-align: center;
-        border-left: 5px solid #3498db;
+        border-left: 5px solid #ff6b35;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
     }
     .dashboard-card h5 {
-        color: #7f8c8d;
+        color: #0a1929;
         font-size: 0.9rem;
         margin-bottom: 0.5rem;
+        font-weight: 600;
     }
     .dashboard-card .number {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #2c3e50;
+        color: #ff6b35;
     }
 </style>
 

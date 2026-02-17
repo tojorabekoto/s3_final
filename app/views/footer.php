@@ -55,6 +55,7 @@ Antananarivo 101 - Madagascar
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5.3.5 JS Local -->
+    <script src="/bootstrap-5.3.5-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
