@@ -1,0 +1,233 @@
+# BNGRC - Systeme de Collecte et Distribution de Dons
+
+## Description
+
+Application web de gestion des besoins et des dons pour les sinistres repartis par region et par ville.
+
+Les besoins sont enregistres par ville (sans identifier personnellement les sinistres).
+Les dons sont ensuite attribues aux besoins correspondants.
+
+---
+
+## 1. Objectifs
+
+- Gerer les regions et les villes
+- Enregistrer les besoins des sinistres par ville
+- Enregistrer les dons
+- Attribuer les dons aux besoins
+- Vendre les dons inutilises
+- Reinitialiser la base de donnees
+
+---
+
+## 2. Architecture
+
+Le projet suit une architecture MVC :
+
+- Model : gestion des donnees (base de donnees)
+- Controller : logique metier
+- View : interface utilisateur
+
+---
+
+## 3. Structure des vues
+
+### header.php
+
+- Logo BNGRC
+- Menu :
+    - Accueil
+    - Besoins
+    - Dons
+    - Attribution
+
+---
+
+### footer.php
+
+- Logo BNGRC
+- Informations de contact :
+    - Email
+    - Adresse
+    - Telephone
+- Reseaux sociaux :
+    - Facebook
+    - Twitter
+    - Instagram
+- Menu rapide :
+    - Accueil
+    - Besoins
+    - Dons
+    - Attribution
+- Copyright :
+    BNGRC 2026
+
+---
+
+### accueil.php
+
+- Inclusion de header.php
+- Grande image de fond
+- Message :
+    "Bienvenue sur le site de collecte et distribution de dons du BNGRC"
+- Liste des villes :
+    - Image de la ville
+    - Nom de la ville
+    - Lien vers ville_detail.php
+- Inclusion de footer.php
+
+---
+
+### ville_detail.php
+
+Affichage detaille d'une ville :
+
+- Nom de la ville
+
+Besoins initiaux :
+- Categorie (riz, huile, materiaux, argent)
+- Quantite
+
+Dons attribues :
+- Categorie
+- Quantite
+
+Restant a attribuer :
+- Categorie
+- Quantite
+
+---
+
+### insertion_besoin.php
+
+Formulaire :
+
+- Region (liste deroulante)
+- Ville (selon region selectionnee)
+- Tableau dynamique :
+    - Categorie
+    - Detail
+    - Quantite
+- Bouton Enregistrer
+- Bouton Valider
+
+---
+
+### insertion_don.php
+
+Formulaire :
+
+- Region (liste deroulante)
+- Ville (selon region selectionnee)
+- Selection des besoins (checkbox dynamique)
+- Champ pour montant (argent)
+- Bouton Valider
+
+Fonctions necessaires :
+
+- getRegion()
+- getVilleByRegion()
+- getSinistresByVille()
+- getBesoinBySinistres()
+- getMateriauxByCat()
+
+---
+
+### attribution.php
+
+Bloc gauche : Liste des besoins
+
+- Nature (riz, huile, etc.)
+- Materiaux (tole, clou, etc.)
+- Argent
+- Quantite restante
+
+Bloc droit : Attribution
+
+- Region
+- Ville
+- Categorie
+- Quantite
+- Bouton "Attribuer"
+
+Regles :
+
+- Erreur si quantite > dons disponibles
+- Lors d'une attribution :
+    - Diminuer dons disponibles
+    - Diminuer besoin restant
+    - Enregistrer l'attribution
+
+---
+
+## 4. Base de donnees
+
+Tables principales :
+
+- regions
+- villes
+- besoins
+- dons
+- attributions
+- categories
+- materiaux
+- parametres
+
+---
+
+## 5. Fonctionnalites principales
+
+1. Gestion des besoins
+    - Enregistrement par ville
+    - Categories :
+        - Nature (riz, huile, etc.)
+        - Materiaux (tole, clou, etc.)
+        - Argent
+
+2. Gestion des dons
+    - Enregistrement
+    - Mise a jour apres attribution
+
+3. Attribution des dons
+    - Verification des quantites
+    - Mise a jour des tables
+
+4. Vente des dons inutilises
+
+Condition :
+- Aucun besoin actif correspondant
+
+Logique :
+- Appliquer un pourcentage de reduction
+- Convertir en argent
+- Ajouter a la banque des sinistres
+
+5. Reinitialisation
+
+Bouton : Reinitialiser
+
+- Restaurer les donnees initiales
+- Supprimer les nouvelles insertions
+- Supprimer les nouvelles attributions
+- Annuler les ventes
+
+---
+
+## 6. Logique generale
+
+Region
+    -> Ville
+        -> Besoins
+            -> Dons
+                -> Attribution
+                    -> Vente (si inutile)
+
+---
+
+## 7. Version 3
+
+- Nouvelle table dons et besoins fournie par les professeurs
+- Bouton de reinitialisation complete
+- Vente intelligente des dons
+- Parametrage du pourcentage de reduction
+- Mise a jour automatique des soldes

@@ -124,6 +124,35 @@ git pull --no-rebase
             nb: On affiche une erreur si la quantité donnée est supérieur aux dons. Ex: on a 100000Ar, et on donne 300000Ar
             la logique de l'attribution de don: plus les don sont attribue aux sinistrer, plus le besoin restant a attribuer diminue et plus les dons attribués au depart diminuent
         - (footer.php)
+
+        
+        
+
+            
+            v3 : 
+        
+les porf vonts donner donnees  : dons et besoins (nouvele table)
+
+-creation bouton pour reinitiliser les operation et revenir a l'initiale : 
+    les porfs vont tester tout les fonctionnaliter , il touche les tables , il iinsert de nouvele chose 
+    alors le bouton sert a reinitialiser la base donne que les rpofs ont donne (base initiale )
+
+-on peux vendre des dons  : changes les dons inutiliser en argnet   :  
+    par exemple : si il y a une personne qui donne u camiion : le dons pourrait etres vendu et l'argent obetnu sera envoyer a la banque sinistre  et on peux aussi acheter des materieles
+
+
+condition pour le vent des dons : 
+        la vente sera effectuer lorsque le dons n'est pas dans la liste des besoins 
+        (qui quelqu'un on besoins encore on encore besoins de ce  dons la vente ne sera pas effectuer ) qui sera un peu compliquer dans tout cela 
+        --- regarder les donnees dans model pour le savoir si initiliser ou pas 
+
+-le prix de dons : le prix de dont sera reduit en pourcentage ( parametrable via iinterface et base de donnee ) 
+
+
+tout sera reinitialiser lorsque on click sur le bouton reinitialiser 
+
+
+
         
 
             
