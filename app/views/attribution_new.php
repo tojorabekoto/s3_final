@@ -42,18 +42,18 @@
 
                 <div>
                     <h6 class="text-success">Argent</h6>
-                    <ul class="list-group">
-                        <?php if (!empty($stock_argent)): ?>
-                            <?php foreach ($stock_argent as $stock): ?>
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>Don en argent</span>
-                                    <span class="badge bg-success"><?php echo number_format($stock['montant_disponible'], 0, ',', ' '); ?> Ar</span>
-                                </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                    <?php if ($total_stock_argent > 0): ?>
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>Stock argent global</strong></span>
+                                <span class="badge bg-success fs-6"><?php echo number_format($total_stock_argent, 0, ',', ' '); ?> Ar</span>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <ul class="list-group">
                             <li class="list-group-item text-muted">Aucun stock argent disponible</li>
-                        <?php endif; ?>
-                    </ul>
+                        </ul>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -97,16 +97,14 @@
                                     <?php endforeach; ?>
                                 </select>
 
-                                <!-- Stock argent -->
-                                <select name="id_stock_argent" id="stockArgentSelect" class="form-select d-none">
-                                    <option value="">-- Choisir un stock --</option>
-                                    <?php foreach ($stock_argent as $stock): ?>
-                                        <option value="<?php echo $stock['id_stock_argent']; ?>"
-                                                data-dispo="<?php echo $stock['montant_disponible']; ?>">
-                                            <?php echo number_format($stock['montant_disponible'], 0, ',', ' '); ?> Ar disponibles
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <!-- Stock argent : montant total (pas de sélection individuelle) -->
+                                <div id="stockArgentDisplay" class="d-none">
+                                    <input type="hidden" name="id_stock_argent" value="global">
+                                    <div class="alert alert-success mb-0">
+                                        <i class="fas fa-wallet me-2"></i>
+                                        Stock argent disponible : <strong><?php echo number_format($total_stock_argent, 0, ',', ' '); ?> Ar</strong>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -191,7 +189,8 @@
     const typeSelect = document.getElementById('typeSelect');
     const stockBlock = document.getElementById('stockBlock');
     const stockMaterielSelect = document.getElementById('stockMaterielSelect');
-    const stockArgentSelect = document.getElementById('stockArgentSelect');
+    const stockArgentDisplay = document.getElementById('stockArgentDisplay');
+    const totalStockArgent = <?php echo $total_stock_argent; ?>;
     const destinationBlock = document.getElementById('destinationBlock');
     const regionSelect = document.getElementById('regionSelect');
     const villeSelect = document.getElementById('villeSelect');
@@ -232,15 +231,19 @@
         submitBtn.style.display = 'none';
 
         stockMaterielSelect.classList.add('d-none');
-        stockArgentSelect.classList.add('d-none');
+        stockArgentDisplay.classList.add('d-none');
         stockMaterielSelect.value = '';
-        stockArgentSelect.value = '';
 
         if (type === 'naturels' || type === 'materiaux') {
             stockMaterielSelect.classList.remove('d-none');
             filterStockByType(type);
         } else if (type === 'argent') {
-            stockArgentSelect.classList.remove('d-none');
+            stockArgentDisplay.classList.remove('d-none');
+            // Passer directement à la destination
+            destinationBlock.style.display = 'block';
+            besoinArgentSelect.classList.remove('d-none');
+            besoinMaterielSelect.classList.add('d-none');
+            updateMaxDispo();
         }
     });
 
@@ -262,12 +265,7 @@
         updateMaxDispo();
     });
 
-    stockArgentSelect.addEventListener('change', () => {
-        destinationBlock.style.display = stockArgentSelect.value ? 'block' : 'none';
-        besoinArgentSelect.classList.remove('d-none');
-        besoinMaterielSelect.classList.add('d-none');
-        updateMaxDispo();
-    });
+    // Plus besoin d'event listener pour stockArgentSelect (c'est automatique)
 
     // Étape 3: Destination
     regionSelect.addEventListener('change', () => {
@@ -304,7 +302,7 @@
 
     function checkComplete() {
         const type = typeSelect.value;
-        const hasStock = (type === 'argent' && stockArgentSelect.value) || 
+        const hasStock = (type === 'argent' && totalStockArgent > 0) || 
                         ((type === 'naturels' || type === 'materiaux') && stockMaterielSelect.value);
         const hasBesoin = (type === 'argent' && besoinArgentSelect.value) || 
                          ((type === 'naturels' || type === 'materiaux') && besoinMaterielSelect.value);
@@ -320,9 +318,8 @@
         let dispo = 0;
         let unite = '';
 
-        if (type === 'argent' && stockArgentSelect.value) {
-            const selected = stockArgentSelect.options[stockArgentSelect.selectedIndex];
-            dispo = selected.dataset.dispo;
+        if (type === 'argent') {
+            dispo = totalStockArgent;
             unite = 'Ar';
         } else if ((type === 'naturels' || type === 'materiaux') && stockMaterielSelect.value) {
             const selected = stockMaterielSelect.options[stockMaterielSelect.selectedIndex];

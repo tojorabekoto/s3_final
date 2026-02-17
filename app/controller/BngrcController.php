@@ -369,6 +369,7 @@ class BngrcController
             'besoins_argent' => $this->model->getBesoinsArgentForForm(),
             'stock_materiel' => $this->model->getStockMateriel(),
             'stock_argent' => $this->model->getStockArgent(),
+            'total_stock_argent' => $this->model->getTotalStockArgent(),
             'message' => null,
             'error' => null
         ];
@@ -407,23 +408,28 @@ class BngrcController
                 }
             }
         } elseif ($type === 'argent') {
-            $id_stock_argent = (int)($_POST['id_stock_argent'] ?? 0);
             $id_besoin_argent = (int)($_POST['id_besoin_argent'] ?? 0);
             
-            if ($id_stock_argent <= 0 || $id_besoin_argent <= 0) {
-                $error = 'Veuillez selectionner un stock et un besoin.';
+            if ($id_besoin_argent <= 0) {
+                $error = 'Veuillez selectionner un besoin.';
             } else {
-                $restant = $this->model->getRestantArgentByBesoin($id_besoin_argent);
-                if ($quantite > $restant) {
-                    $error = 'Montant superieur au restant disponible du besoin.';
+                // Vérifier le total disponible
+                $totalDispo = $this->model->getTotalStockArgent();
+                if ($quantite > $totalDispo) {
+                    $error = 'Stock argent insuffisant. Disponible: ' . number_format($totalDispo, 0, ',', ' ') . ' Ar';
                 } else {
-                    // Diminuer le stock
-                    if ($this->model->diminuerStockArgent($id_stock_argent, $quantite)) {
-                        // Créer l'attribution
-                        $this->model->insertDonArgent($id_besoin_argent, $quantite);
-                        $message = "Attribution reussie: ".number_format($quantite, 0, ',', ' ')." Ar attribues.";
+                    $restant = $this->model->getRestantArgentByBesoin($id_besoin_argent);
+                    if ($quantite > $restant) {
+                        $error = 'Montant superieur au restant disponible du besoin.';
                     } else {
-                        $error = 'Stock insuffisant pour ce montant.';
+                        // Diminuer le stock argent global (pioche dans les entrées les plus anciennes)
+                        if ($this->model->diminuerStockArgentGlobal($quantite)) {
+                            // Créer l'attribution
+                            $this->model->insertDonArgent($id_besoin_argent, $quantite);
+                            $message = "Attribution reussie: ".number_format($quantite, 0, ',', ' ')." Ar attribues.";
+                        } else {
+                            $error = 'Stock insuffisant pour ce montant.';
+                        }
                     }
                 }
             }
@@ -438,6 +444,7 @@ class BngrcController
             'besoins_argent' => $this->model->getBesoinsArgentForForm(),
             'stock_materiel' => $this->model->getStockMateriel(),
             'stock_argent' => $this->model->getStockArgent(),
+            'total_stock_argent' => $this->model->getTotalStockArgent(),
             'message' => $message,
             'error' => $error
         ];
@@ -717,5 +724,103 @@ class BngrcController
     {
         $data = $this->model->getRecapData();
         Flight::json($data);
+    }
+
+    // ════════════════════════════════════════════════
+    // V3 — Vente de dons
+    // ════════════════════════════════════════════════
+
+    public function showVente()
+    {
+        $data = [
+            'stock_vendable' => $this->model->getStockVendable(),
+            'pourcentage' => (float)($this->model->getConfigValue('pourcentage_reduction_vente') ?? 30),
+            'historique_ventes' => $this->model->getHistoriqueVentes(),
+            'message' => $_SESSION['flash_message'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null,
+            'show_success_modal' => false,
+            'vente_result' => null,
+        ];
+        unset($_SESSION['flash_message'], $_SESSION['flash_error']);
+        Flight::render('vente', $data);
+    }
+
+    public function submitVente()
+    {
+        $id_produit = (int)($_POST['id_produit'] ?? 0);
+        $quantite = (float)($_POST['quantite'] ?? 0);
+
+        $error = null;
+        $vente_result = null;
+        $show_success_modal = false;
+
+        if ($id_produit <= 0 || $quantite <= 0) {
+            $error = 'Veuillez remplir tous les champs correctement.';
+        } else {
+            $result = $this->model->processVente($id_produit, $quantite);
+            if ($result['success']) {
+                $show_success_modal = true;
+                $vente_result = $result;
+            } else {
+                $error = $result['error'];
+            }
+        }
+
+        $data = [
+            'stock_vendable' => $this->model->getStockVendable(),
+            'pourcentage' => (float)($this->model->getConfigValue('pourcentage_reduction_vente') ?? 30),
+            'historique_ventes' => $this->model->getHistoriqueVentes(),
+            'message' => $show_success_modal ? 'Vente effectuée avec succès !' : null,
+            'error' => $error,
+            'show_success_modal' => $show_success_modal,
+            'vente_result' => $vente_result,
+        ];
+        Flight::render('vente', $data);
+    }
+
+    public function apiGetStockVendable()
+    {
+        $stock = $this->model->getStockVendable();
+        $pourcentage = (float)($this->model->getConfigValue('pourcentage_reduction_vente') ?? 30);
+        Flight::json(['stock' => $stock, 'pourcentage' => $pourcentage]);
+    }
+
+    // ════════════════════════════════════════════════
+    // V3 — Configuration
+    // ════════════════════════════════════════════════
+
+    public function showConfig()
+    {
+        $data = [
+            'configs' => $this->model->getAllConfig(),
+            'message' => $_SESSION['flash_message'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null,
+        ];
+        unset($_SESSION['flash_message'], $_SESSION['flash_error']);
+        Flight::render('config', $data);
+    }
+
+    public function submitConfig()
+    {
+        $cle = $_POST['cle'] ?? '';
+        $valeur = $_POST['valeur'] ?? '';
+
+        if (empty($cle) || $valeur === '') {
+            Flight::json(['success' => false, 'error' => 'Paramètres invalides.']);
+            return;
+        }
+
+        $this->model->setConfigValue($cle, $valeur);
+        Flight::json(['success' => true, 'message' => 'Configuration mise à jour.']);
+    }
+
+    // ════════════════════════════════════════════════
+    // V3 — Réinitialisation
+    // ════════════════════════════════════════════════
+
+    public function submitReset()
+    {
+        $result = $this->model->resetDatabase();
+        Flight::json($result);
     }
 }

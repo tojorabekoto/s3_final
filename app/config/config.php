@@ -70,7 +70,8 @@ return [
 	 **************************************/
 	'database' => [
 		// MySQL Example:
-		'host'     => 'localhost',      // Database host (e.g., 'localhost', 'db.example.com')
+		'host'     => '127.0.0.1',      // Database host (e.g., 'localhost', 'db.example.com')
+		'port'     => '8889',            // MAMP MySQL port
 		 'dbname'   => 'bngrc',   // Database name (e.g., 'flightphp')
 		 'user'     => 'root',  // Database user (e.g., 'root')
 		 'password' => 'root',  // Database password (never commit real passwords)

@@ -647,5 +647,223 @@ class BngrcModel {
 
         return $data;
     }
+
+    // ══════════════════════════════════════════════════════════
+    //  V3 — Configuration système
+    // ══════════════════════════════════════════════════════════
+
+    public function getConfigValue($cle) {
+        $stmt = $this->db->prepare("SELECT valeur FROM config_systeme WHERE cle = ?");
+        $stmt->execute([$cle]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['valeur'] : null;
+    }
+
+    public function setConfigValue($cle, $valeur) {
+        $stmt = $this->db->prepare(
+            "UPDATE config_systeme SET valeur = ? WHERE cle = ?"
+        );
+        return $stmt->execute([$valeur, $cle]);
+    }
+
+    public function getAllConfig() {
+        $stmt = $this->db->query("SELECT cle, valeur, description FROM config_systeme");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  V3 — Vente de dons non-nécessaires
+    // ══════════════════════════════════════════════════════════
+
+    /**
+     * Retourne les produits en stock qui ne figurent dans AUCUN besoin_materiaux
+     * avec quantite restante > 0. Ce sont les produits "vendables".
+     */
+    public function getStockVendable() {
+        $stmt = $this->db->query(
+            "SELECT dsm.id_stock, dsm.id_produit, p.nom_produit, p.unite_standard,
+                    p.prix_unitaire, dsm.quantite_disponible
+             FROM don_stock_materiel dsm
+             JOIN produit p ON p.id_produit = dsm.id_produit
+             WHERE dsm.quantite_disponible > 0
+               AND NOT EXISTS (
+                   SELECT 1 FROM besoin_materiaux bm
+                   WHERE LOWER(TRIM(bm.nom_besoin)) = LOWER(TRIM(p.nom_produit))
+                     AND bm.quantite > 0
+               )
+             ORDER BY p.nom_produit"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Traiter une vente : réduire le stock, enregistrer la vente,
+     * créditer l'argent au stock global (don_stock_argent).
+     */
+    public function processVente($id_produit, $quantite) {
+        $pourcentage = (float)($this->getConfigValue('pourcentage_reduction_vente') ?? 30);
+        
+        // Récupérer info produit
+        $produit = $this->getProduitById($id_produit);
+        if (!$produit) {
+            return ['success' => false, 'error' => 'Produit introuvable.'];
+        }
+
+        $prix_original = (float)$produit['prix_unitaire'];
+        if ($prix_original <= 0) {
+            return ['success' => false, 'error' => 'Ce produit n\'a pas de prix unitaire défini.'];
+        }
+
+        $prix_vente = round($prix_original * (1 - $pourcentage / 100), 2);
+        $montant_total = round($prix_vente * $quantite, 2);
+
+        // Vérifier stock suffisant
+        $stmt = $this->db->prepare(
+            "SELECT quantite_disponible FROM don_stock_materiel 
+             WHERE id_produit = ? AND quantite_disponible >= ?"
+        );
+        $stmt->execute([$id_produit, $quantite]);
+        if (!$stmt->fetch()) {
+            return ['success' => false, 'error' => 'Stock insuffisant.'];
+        }
+
+        // Réduire le stock matériel
+        $this->diminuerStockMateriel($id_produit, $quantite);
+
+        // Enregistrer la vente
+        $stmt = $this->db->prepare(
+            "INSERT INTO vente_don (id_produit, quantite_vendue, prix_unitaire_original, 
+                                    pourcentage_reduction, prix_unitaire_vente, montant_total, id_sinistre)
+             VALUES (?, ?, ?, ?, ?, ?, NULL)"
+        );
+        $stmt->execute([$id_produit, $quantite, $prix_original, $pourcentage, $prix_vente, $montant_total]);
+
+        // Créditer l'argent au stock global
+        $this->insertDonStockArgent($montant_total);
+
+        return [
+            'success' => true,
+            'nom_produit' => $produit['nom_produit'],
+            'quantite_vendue' => $quantite,
+            'prix_original' => $prix_original,
+            'pourcentage_reduction' => $pourcentage,
+            'prix_vente' => $prix_vente,
+            'montant_total' => $montant_total
+        ];
+    }
+
+    /**
+     * Historique des ventes
+     */
+    public function getHistoriqueVentes() {
+        $stmt = $this->db->query(
+            "SELECT vd.*, p.nom_produit, p.unite_standard
+             FROM vente_don vd
+             JOIN produit p ON p.id_produit = vd.id_produit
+             ORDER BY vd.date_vente DESC"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Retourne le total global de l'argent en stock
+     */
+    public function getTotalStockArgent() {
+        $stmt = $this->db->query(
+            "SELECT COALESCE(SUM(montant_disponible), 0) AS total FROM don_stock_argent WHERE montant_disponible > 0"
+        );
+        return (float)$stmt->fetchColumn();
+    }
+
+    /**
+     * Diminuer le stock argent global (en piochant dans les entrées les plus anciennes)
+     */
+    public function diminuerStockArgentGlobal($montant) {
+        $reste = $montant;
+        $stmt = $this->db->query(
+            "SELECT id_stock_argent, montant_disponible FROM don_stock_argent 
+             WHERE montant_disponible > 0 ORDER BY date_don ASC"
+        );
+        $stocks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($stocks as $stock) {
+            if ($reste <= 0) break;
+            $dispo = (float)$stock['montant_disponible'];
+            $aRetirer = min($reste, $dispo);
+
+            $upd = $this->db->prepare(
+                "UPDATE don_stock_argent SET montant_disponible = montant_disponible - ? WHERE id_stock_argent = ?"
+            );
+            $upd->execute([$aRetirer, $stock['id_stock_argent']]);
+            $reste -= $aRetirer;
+        }
+
+        return $reste <= 0;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  V3 — Réinitialisation de la base de données
+    // ══════════════════════════════════════════════════════════
+
+    /**
+     * Remet la BDD à son état initial (données des professeurs).
+     * Supprime toutes les données opérationnelles et réinsère les données initiales.
+     */
+    public function resetDatabase() {
+        try {
+            $this->db->exec("SET FOREIGN_KEY_CHECKS = 0");
+
+            // Tables à vider (ordre n'importe pas grâce à FK_CHECKS=0)
+            $tables = [
+                'vente_don',
+                'historique_used_argent',
+                'historique_dons_argent',
+                'historique_dons_materiaux',
+                'achat_materiaux',
+                'inventaire_materiaux',
+                'inventaire_argent',
+                'don_materiaux',
+                'don_argent',
+                'don_stock_materiel',
+                'don_stock_argent',
+                'besoin_materiaux',
+                'besoin_argent',
+                'sinistre',
+                'ville',
+                'region',
+                'categorie_besoin',
+                'produit',
+                'config_systeme',
+            ];
+
+            foreach ($tables as $table) {
+                $this->db->exec("TRUNCATE TABLE `$table`");
+            }
+
+            $this->db->exec("SET FOREIGN_KEY_CHECKS = 1");
+
+            // Réinsérer les données initiales
+            $sqlFile = __DIR__ . '/../../bdd/data_initiale.sql';
+            if (!file_exists($sqlFile)) {
+                return ['success' => false, 'error' => 'Fichier data_initiale.sql introuvable.'];
+            }
+
+            $sql = file_get_contents($sqlFile);
+            // Supprimer les commentaires SQL
+            $sql = preg_replace('/--.*$/m', '', $sql);
+            // Séparer les requêtes
+            $queries = array_filter(array_map('trim', explode(';', $sql)));
+
+            foreach ($queries as $query) {
+                if (!empty($query)) {
+                    $this->db->exec($query);
+                }
+            }
+
+            return ['success' => true, 'message' => 'Base de données réinitialisée avec succès.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => 'Erreur lors de la réinitialisation : ' . $e->getMessage()];
+        }
+    }
 }
 ?>

@@ -131,31 +131,25 @@ git pull --no-rebase
             
             v3 : 
         
-les porf vonts donner donnees  : dons et besoins (nouvele table)
+les profs vonts donner donnees  : dons et besoins (nouvele table)
 
 -creation bouton pour reinitiliser les operation et revenir a l'initiale : 
-    les porfs vont tester tout les fonctionnaliter , il touche les tables , il iinsert de nouvele chose 
-    alors le bouton sert a reinitialiser la base donne que les rpofs ont donne (base initiale )
+    les profs vont tester tout les fonctionnaliter , il touche les tables , il insert de nouvele chose 
+    alors le bouton sert a reinitialiser la base donne que les profs ont donne (base initiale )
 
 -on peux vendre des dons  : changes les dons inutiliser en argnet   :  
-    par exemple : si il y a une personne qui donne u camiion : le dons pourrait etres vendu et l'argent obetnu sera envoyer a la banque sinistre  et on peux aussi acheter des materieles
+    par exemple : si il y a une personne qui donne u camiion : le dons pourrait etres vendu et l'argent obtenu sera envoyer a la banque sinistre  et on peux aussi acheter des materieles
 
 
 condition pour le vent des dons : 
         la vente sera effectuer lorsque le dons n'est pas dans la liste des besoins 
-        (qui quelqu'un on besoins encore on encore besoins de ce  dons la vente ne sera pas effectuer ) qui sera un peu compliquer dans tout cela 
+        (si quelqu'un on besoins encore on encore besoins de ce dons, la vente ne sera pas effectuer ) qui sera un peu compliquer dans tout cela 
         --- regarder les donnees dans model pour le savoir si initiliser ou pas 
 
--le prix de dons : le prix de dont sera reduit en pourcentage ( parametrable via iinterface et base de donnee ) 
+-le prix de dons : le prix de dont sera reduit en pourcentage ( parametrable via interface et base de donnee ) 
 
 
-tout sera reinitialiser lorsque on click sur le bouton reinitialiser 
-
-
-
-        
-
-            
-            
-        
-
+tout sera reinitialiser lorsque on click sur le bouton reinitialiser (qu'on doit avoir qlq part dans l'interface, utilise la plus logique possible comme emplacement pour ce bouton ) :
+ la reinisialisation en question c'est:
+    - supprimer tous les dons et besoins qui ont été insérer par les profs (sauf les donnees initiales donnees par les profs au tout debut ), ils pourront faire tout les tests qu'ils veulent et a la fin ils peuvent reinitialiser la base de donnee pour revenir a l'etat initiale
+    - les dons et besoins qui sont dans la base de donnee initiale ne seront pas supprimer lors de la reinitialisation (donc lors de la reinitialisation, on supprime tous les dons et besoins sans exeption et on insere automatiquement les dons et besoins initiaux qui sont dans un fichier sql ou dans une table de la base de donnee qui contient les donnees initiales )

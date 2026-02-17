@@ -42,6 +42,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/recap"><i class="fas fa-chart-pie me-1"></i>Récap</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vente"><i class="fas fa-store me-1"></i>Vente</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/config"><i class="fas fa-cogs me-1"></i>Admin</a>
+                        </li>
                     </ul>
                 </div>
             </div>

@@ -36,10 +36,14 @@ Antananarivo 101 - Madagascar
                 <div class="col-md-4 mb-4">
                     <h6>Navigation</h6>
                     <ul class="list-unstyled">
-                        <li><a href="<?php echo '/accueil'; ?>" class="text-light text-decoration-none">Accueil</a></li>
-                        <li><a href="<?php echo '/insertion_besoin'; ?>" class="text-light text-decoration-none">Besoins</a></li>
-                        <li><a href="<?php echo '/insertion_don'; ?>" class="text-light text-decoration-none">Dons</a></li>
-                        <li><a href="<?php echo '/attribution'; ?>" class="text-light text-decoration-none">Attribution</a></li>
+                        <li><a href="/accueil" class="text-light text-decoration-none">Accueil</a></li>
+                        <li><a href="/insertion_besoin" class="text-light text-decoration-none">Besoins</a></li>
+                        <li><a href="/insertion_don" class="text-light text-decoration-none">Dons</a></li>
+                        <li><a href="/achat" class="text-light text-decoration-none">Achat</a></li>
+                        <li><a href="/attribution" class="text-light text-decoration-none">Attribution</a></li>
+                        <li><a href="/recap" class="text-light text-decoration-none">Récap</a></li>
+                        <li><a href="/vente" class="text-light text-decoration-none"></a></li>
+                        <li><a href="/config" class="text-light text-decoration-none">Admin</a></li>
                     </ul>
                 </div>
             </div>
@@ -49,6 +53,7 @@ Antananarivo 101 - Madagascar
             <!-- Copyright -->
             <div class="row">
                 <div class="col text-center">
+                    <p> 4163 - 4317 - 4289</p>
                     <p class="mb-0">&copy; 2026 BNGRC - Tous droits réservés</p>
                 </div>
             </div>

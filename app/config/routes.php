@@ -47,5 +47,17 @@ Flight::route('POST /attribution',      [$controller, 'submitAttribution']);
 Flight::route('GET /recap',             [$controller, 'showRecap']);
 Flight::route('GET /api/recap',         [$controller, 'apiGetRecapData']);
 
+// V3 — Vente de dons
+Flight::route('GET /vente',             [$controller, 'showVente']);
+Flight::route('POST /vente',            [$controller, 'submitVente']);
+Flight::route('GET /api/stock-vendable',[$controller, 'apiGetStockVendable']);
+
+// V3 — Configuration
+Flight::route('GET /config',            [$controller, 'showConfig']);
+Flight::route('POST /api/config',       [$controller, 'submitConfig']);
+
+// V3 — Réinitialisation
+Flight::route('POST /api/reset',        [$controller, 'submitReset']);
+
 Flight::route('GET /',                  [$controller, 'dashboard']);
 Flight::route('GET /accueil',           [$controller, 'dashboard']);

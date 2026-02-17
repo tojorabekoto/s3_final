@@ -7,9 +7,11 @@
                 <h1 class="mb-1"><i class="fas fa-chart-pie me-2"></i>Récapitulation générale</h1>
                 <p class="text-muted mb-0">Vue d'ensemble des besoins, dons et achats en montant (Ar)</p>
             </div>
-            <button id="refreshBtn" class="btn btn-secondary btn-lg" onclick="refreshData()">
-                <i class="fas fa-sync-alt me-1"></i>Actualiser
-            </button>
+            <div class="d-flex gap-2">
+                <button id="refreshBtn" class="btn btn-secondary btn-lg" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-1"></i>Actualiser
+                </button>
+            </div>
         </div>
     </section>
 
@@ -309,5 +311,33 @@ function refreshData() {
 document.addEventListener('DOMContentLoaded', () => {
     const taux = <?php echo $taux_satisfaction; ?>;
     document.getElementById('progressCircle').setAttribute('stroke-dasharray', taux + ', 100');
+});
+
+// ─── Reset ───────────────────────────────────
+document.getElementById('btnReset')?.addEventListener('click', function() {
+    const confirmText = prompt('⚠️ Cette action va supprimer toutes les données et restaurer l\'état initial.\n\nTapez RESET pour confirmer :');
+    if (confirmText !== 'RESET') return;
+
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Réinitialisation...';
+
+    fetch('/api/reset', { method: 'POST', headers: {'Content-Type': 'application/json'} })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Base de données réinitialisée avec succès !');
+                window.location.reload();
+            } else {
+                alert('❌ Erreur : ' + (data.error || 'Échec'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-undo me-1"></i>Réinitialiser';
+            }
+        })
+        .catch(err => {
+            alert('❌ Erreur réseau : ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-undo me-1"></i>Réinitialiser';
+        });
 });
 </script>
