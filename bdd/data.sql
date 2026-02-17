@@ -7,12 +7,12 @@ INSERT INTO region (nom_region) VALUES
 ('Sava');
 
 INSERT INTO ville (id_region, nom_ville, image_path) VALUES
-(1, 'Antananarivo', '/images/villes/antananarivo.jpg'),
-(2, 'Toamasina', '/images/villes/toamasina.jpg'),
-(3, 'Mahajanga', '/images/villes/mahajanga.jpg'),
-(4, 'Fianarantsoa', '/images/villes/fianarantsoa.jpg'),
-(5, 'Ambatondrazaka', '/images/villes/ambatondrazaka.jpg'),
-(6, 'Sambava', '/images/villes/sambava.jpg');
+(1, 'Antananarivo', '/images/antananarivo.jpg'),
+(2, 'Toamasina', '/images/toamasina.jpg'),
+(3, 'Mahajanga', '/images/mahajanga.jpg'),
+(4, 'Fianarantsoa', '/images/fianarantsoa.jpg'),
+(5, 'Ambatondrazaka', '/images/ambatondrazaka.jpg'),
+(6, 'Sambava', '/images/sambava.jpg');
 
 INSERT INTO sinistre (id_ville) VALUES
 (1),
