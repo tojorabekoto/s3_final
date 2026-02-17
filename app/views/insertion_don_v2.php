@@ -58,19 +58,31 @@
                             </div>
 
                             <!-- Produit -->
-                            <div class="col-md-4 mb-3">
-                                <label for="produit" class="form-label required">Produit</label>
-                                <select class="form-select" id="produit" required disabled>
-                                    <option value="">Choisir une catégorie d'abord</option>
-                                </select>
-                                <small class="form-text text-muted" id="uniteInfo"></small>
+                            <div class="col-md-3 mb-3">
+                                <label for="produitInput" class="form-label required">Produit</label>
+                                <input type="text" class="form-control" id="produitInput" list="produitDatalist"
+                                       placeholder="Choisir une catégorie d'abord" disabled autocomplete="off">
+                                <datalist id="produitDatalist"></datalist>
+                                <small class="form-text" id="produitHint"></small>
                             </div>
 
                             <!-- Quantité -->
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-2 mb-3">
                                 <label for="quantite" class="form-label required">Quantité</label>
                                 <input type="number" class="form-control" id="quantite" 
                                        min="0.01" step="0.01" placeholder="0" required disabled>
+                            </div>
+
+                            <!-- Unité -->
+                            <div class="col-md-2 mb-3">
+                                <label for="uniteInput" class="form-label">Unité</label>
+                                <input type="text" class="form-control" id="uniteInput" placeholder="kg, L, ..." disabled>
+                            </div>
+
+                            <!-- Prix unitaire -->
+                            <div class="col-md-2 mb-3">
+                                <label for="prixInput" class="form-label">Prix unit. (Ar)</label>
+                                <input type="number" class="form-control" id="prixInput" min="0" step="1" placeholder="0" disabled>
                             </div>
 
                             <!-- Bouton Ajouter -->
@@ -143,87 +155,133 @@
 </main>
 
 <script>
-// Données des produits par catégorie (chargées depuis PHP)
-const produitsData = <?php echo json_encode($produits_par_categorie); ?>;
-
 // Panier
 let panier = {
     materiaux: [],
     argent: 0
 };
 
+// Cache des produits chargés depuis l'API
+let produitsCache = [];
+
 // Éléments DOM
 const selectCategorie = document.getElementById('categorie');
-const selectProduit = document.getElementById('produit');
+const produitInput = document.getElementById('produitInput');
+const produitDatalist = document.getElementById('produitDatalist');
+const produitHint = document.getElementById('produitHint');
 const inputQuantite = document.getElementById('quantite');
+const uniteInput = document.getElementById('uniteInput');
+const prixInput = document.getElementById('prixInput');
 const inputArgent = document.getElementById('montantArgent');
 const btnAjouter = document.getElementById('btnAjouter');
 const btnAjouterArgent = document.getElementById('btnAjouterArgent');
 const btnSubmit = document.getElementById('btnSubmit');
 const panierContainer = document.getElementById('panierContainer');
-const uniteInfo = document.getElementById('uniteInfo');
 
-// Charger les produits selon la catégorie
-selectCategorie.addEventListener('change', function() {
+// Charger les produits depuis l'API selon la catégorie
+selectCategorie.addEventListener('change', async function() {
     const idCategorie = this.value;
-    selectProduit.innerHTML = '<option value="">Choisir...</option>';
-    
-    if (idCategorie && produitsData[idCategorie]) {
-        produitsData[idCategorie].forEach(produit => {
-            const option = document.createElement('option');
-            option.value = produit.id_produit;
-            option.textContent = produit.nom_produit;
-            option.dataset.unite = produit.unite_standard;
-            selectProduit.appendChild(option);
-        });
-        selectProduit.disabled = false;
+    produitDatalist.innerHTML = '';
+    produitsCache = [];
+    produitInput.value = '';
+    uniteInput.value = '';
+    prixInput.value = '';
+    produitHint.textContent = '';
+
+    if (idCategorie) {
+        try {
+            const resp = await fetch('/api/produits/' + idCategorie);
+            if (resp.ok) {
+                produitsCache = await resp.json();
+                produitsCache.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.nom_produit;
+                    opt.dataset.id = p.id_produit;
+                    opt.dataset.unite = p.unite_standard || '';
+                    opt.dataset.prix = p.prix_unitaire || 0;
+                    produitDatalist.appendChild(opt);
+                });
+                produitHint.textContent = produitsCache.length > 0
+                    ? 'Choisissez un produit existant ou tapez un nouveau nom'
+                    : 'Aucun produit — tapez un nom pour en créer un';
+                produitHint.className = 'form-text text-muted';
+            }
+        } catch(e) {
+            console.warn('Erreur chargement produits:', e);
+        }
+        produitInput.disabled = false;
         inputQuantite.disabled = false;
+        uniteInput.disabled = false;
+        prixInput.disabled = false;
+        produitInput.focus();
     } else {
-        selectProduit.disabled = true;
+        produitInput.disabled = true;
         inputQuantite.disabled = true;
+        uniteInput.disabled = true;
+        prixInput.disabled = true;
         btnAjouter.disabled = true;
-        uniteInfo.textContent = '';
     }
 });
 
-// Afficher l'unité quand un produit est sélectionné
-selectProduit.addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    if (selectedOption.value) {
-        const unite = selectedOption.dataset.unite;
-        uniteInfo.textContent = `Unité: ${unite}`;
+// Détecter produit existant ou nouveau quand l'utilisateur tape
+produitInput.addEventListener('input', function() {
+    const val = this.value.trim().toLowerCase();
+    const match = produitsCache.find(p => p.nom_produit.toLowerCase() === val);
+
+    if (match) {
+        uniteInput.value = match.unite_standard || '';
+        prixInput.value = match.prix_unitaire || '';
+        produitHint.textContent = '✓ Produit existant';
+        produitHint.className = 'form-text text-success';
         btnAjouter.disabled = false;
-        inputQuantite.focus();
+    } else if (val.length > 0) {
+        produitHint.textContent = '⚠ Nouveau produit — renseignez unité et prix';
+        produitHint.className = 'form-text text-warning';
+        btnAjouter.disabled = false;
     } else {
-        uniteInfo.textContent = '';
+        produitHint.textContent = '';
         btnAjouter.disabled = true;
     }
 });
 
 // Ajouter un produit au panier
 btnAjouter.addEventListener('click', function() {
-    const idProduit = parseInt(selectProduit.value);
-    const nomProduit = selectProduit.options[selectProduit.selectedIndex].text;
-    const unite = selectProduit.options[selectProduit.selectedIndex].dataset.unite;
+    const nomProduit = produitInput.value.trim();
     const quantite = parseFloat(inputQuantite.value);
+    const unite = uniteInput.value.trim();
+    const prix = parseFloat(prixInput.value) || 0;
+    const idCategorie = parseInt(selectCategorie.value);
 
-    if (!idProduit || !quantite || quantite <= 0) {
+    if (!nomProduit || !quantite || quantite <= 0 || !idCategorie) {
         alert('Veuillez remplir tous les champs correctement.');
         return;
     }
 
-    // Vérifier si le produit existe déjà dans le panier
-    const existingIndex = panier.materiaux.findIndex(p => p.id_produit === idProduit);
+    // Chercher si c'est un produit existant
+    const match = produitsCache.find(p => p.nom_produit.toLowerCase() === nomProduit.toLowerCase());
+    const idProduit = match ? match.id_produit : null;
+
+    // Vérifier si le produit existe déjà dans le panier (par nom)
+    const existingIndex = panier.materiaux.findIndex(p => p.nom_produit.toLowerCase() === nomProduit.toLowerCase());
     if (existingIndex >= 0) {
         panier.materiaux[existingIndex].quantite += quantite;
     } else {
-        panier.materiaux.push({ id_produit: idProduit, nom_produit: nomProduit, quantite, unite });
+        panier.materiaux.push({
+            id_produit: idProduit,
+            nom_produit: nomProduit,
+            id_categorie: idCategorie,
+            quantite: quantite,
+            unite: unite,
+            prix_unitaire: prix
+        });
     }
 
-    // Réinitialiser le formulaire
+    // Réinitialiser
     inputQuantite.value = '';
-    selectProduit.value = '';
-    uniteInfo.textContent = '';
+    produitInput.value = '';
+    uniteInput.value = '';
+    prixInput.value = '';
+    produitHint.textContent = '';
     btnAjouter.disabled = true;
 
     updatePanier();

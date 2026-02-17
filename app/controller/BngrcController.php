@@ -172,10 +172,24 @@ class BngrcController
             // Traiter les dons matériels
             if (isset($panier['materiaux']) && is_array($panier['materiaux'])) {
                 foreach ($panier['materiaux'] as $don) {
-                    $id_produit = (int)($don['id_produit'] ?? 0);
+                    $id_produit = !empty($don['id_produit']) ? (int)$don['id_produit'] : null;
                     $quantite = (float)($don['quantite'] ?? 0);
 
-                    if ($id_produit > 0 && $quantite > 0) {
+                    if ($quantite <= 0) continue;
+
+                    // Si pas d'id_produit, c'est un nouveau produit → le créer
+                    if (!$id_produit) {
+                        $nom = trim($don['nom_produit'] ?? '');
+                        $id_categorie = (int)($don['id_categorie'] ?? 0);
+                        $unite = trim($don['unite'] ?? '');
+                        $prix = (float)($don['prix_unitaire'] ?? 0);
+
+                        if ($nom && $id_categorie > 0) {
+                            $id_produit = $this->model->getOrCreateProduit($nom, $id_categorie, $unite, $prix);
+                        }
+                    }
+
+                    if ($id_produit > 0) {
                         $this->model->insertDonStockMateriel($id_produit, $quantite);
                         $successCount++;
                     }
@@ -272,12 +286,14 @@ class BngrcController
                     $error = 'La quantité doit être supérieure à 0.';
                 } else {
                     try {
+                        $prix_unitaire = (float)($_POST['prix_unitaire'] ?? 0);
                         $this->model->insertBesoinMateriaux(
                             $id_ville,
                             $id_categorie,
                             $nom_besoin,
                             $quantite,
-                            $unite
+                            $unite,
+                            $prix_unitaire
                         );
                         $message = 'Besoin "' . htmlspecialchars($nom_besoin) . '" enregistré avec succès !';
                     } catch (\RuntimeException $e) {
@@ -709,6 +725,13 @@ class BngrcController
         $argent = $this->model->getInventaireArgentBySinistre($id_sinistre);
 
         Flight::json(['materiaux' => $materiaux, 'argent' => $argent]);
+    }
+
+    public function apiGetProduitsByCategorie($id_categorie)
+    {
+        $id_categorie = (int)$id_categorie;
+        $produits = $this->model->getProduitsParCategorie($id_categorie);
+        Flight::json($produits);
     }
 
     // ────────────────────────────────────────────────

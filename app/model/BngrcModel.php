@@ -229,7 +229,8 @@ class BngrcModel {
         int    $id_categorie,
         string $nom_besoin,
         float  $quantite,
-        string $unite = ''
+        string $unite = '',
+        float  $prix_unitaire = 0
     ): int {
         // Récupérer le sinistre le plus récent de la ville
         $stmtS = $this->db->prepare(
@@ -241,6 +242,9 @@ class BngrcModel {
         if (!$sinistre) {
             throw new \RuntimeException("Aucun sinistre trouvé pour la ville $id_ville.");
         }
+
+        // Auto-créer le produit dans la table produit s'il n'existe pas encore
+        $this->getOrCreateProduit($nom_besoin, $id_categorie, $unite, $prix_unitaire);
 
         $stmt = $this->db->prepare(
             "INSERT INTO besoin_materiaux (id_sinistre, id_categorie, nom_besoin, quantite, unite)
@@ -255,6 +259,31 @@ class BngrcModel {
         ]);
 
         return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Vérifie si un produit existe par nom, sinon le crée.
+     * Retourne l'id_produit.
+     */
+    public function getOrCreateProduit(string $nom, int $id_categorie, string $unite = '', float $prix_unitaire = 0): int {
+        // Chercher un produit existant par nom (insensible à la casse)
+        $stmt = $this->db->prepare(
+            "SELECT id_produit FROM produit WHERE LOWER(nom_produit) = LOWER(?)"
+        );
+        $stmt->execute([$nom]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            return (int)$existing['id_produit'];
+        }
+
+        // Créer le nouveau produit
+        $stmt = $this->db->prepare(
+            "INSERT INTO produit (nom_produit, id_categorie, unite_standard, prix_unitaire)
+             VALUES (?, ?, ?, ?)"
+        );
+        $stmt->execute([$nom, $id_categorie, $unite, $prix_unitaire]);
+        return (int)$this->db->lastInsertId();
     }
 
     public function insertBesoinArgent(int $id_sinistre, float $montant): int {
@@ -403,7 +432,7 @@ class BngrcModel {
         $stmt = $this->db->prepare(
             "SELECT bm.id_besoin, bm.id_sinistre, bm.id_categorie, bm.nom_besoin, 
                     bm.quantite, bm.unite,
-                    COALESCE(bm.prix_unitaire, p.prix_unitaire, 0) AS prix_unitaire,
+                    COALESCE(p.prix_unitaire, 0) AS prix_unitaire,
                     cb.nom AS categorie
              FROM besoin_materiaux bm
              JOIN categorie_besoin cb ON cb.id_categorie = bm.id_categorie
@@ -430,9 +459,11 @@ class BngrcModel {
     public function getInventaireMateriauxBySinistre($id_sinistre) {
         $stmt = $this->db->prepare(
             "SELECT im.id_inventaire, im.id_besoin, bm.nom_besoin, 
-                    im.quantite_disponible, bm.unite, bm.prix_unitaire
+                    im.quantite_disponible, bm.unite,
+                    COALESCE(p.prix_unitaire, 0) AS prix_unitaire
              FROM inventaire_materiaux im
              JOIN besoin_materiaux bm ON bm.id_besoin = im.id_besoin
+             LEFT JOIN produit p ON LOWER(TRIM(bm.nom_besoin)) = LOWER(TRIM(p.nom_produit))
              WHERE im.id_sinistre = ?
              ORDER BY bm.nom_besoin"
         );
@@ -542,7 +573,7 @@ class BngrcModel {
     public function getBesoinsMateriauxByVilleAvecPrix($id_ville) {
         $stmt = $this->db->prepare(
             "SELECT bm.id_besoin, cb.nom AS categorie, bm.nom_besoin, bm.quantite, bm.unite, 
-                    COALESCE(bm.prix_unitaire, p.prix_unitaire, 0) AS prix_unitaire
+                    COALESCE(p.prix_unitaire, 0) AS prix_unitaire
              FROM besoin_materiaux bm
              JOIN sinistre s ON s.id_sinistre = bm.id_sinistre
              JOIN categorie_besoin cb ON cb.id_categorie = bm.id_categorie
@@ -582,7 +613,7 @@ class BngrcModel {
         // 1) Besoins totaux en montant
         // Matériaux : quantite × prix_unitaire (fallback produit)
         $stmt = $this->db->query(
-            "SELECT COALESCE(SUM(bm.quantite * COALESCE(bm.prix_unitaire, p.prix_unitaire, 0)), 0) AS total
+            "SELECT COALESCE(SUM(bm.quantite * COALESCE(p.prix_unitaire, 0)), 0) AS total
              FROM besoin_materiaux bm
              LEFT JOIN produit p ON LOWER(TRIM(bm.nom_besoin)) = LOWER(TRIM(p.nom_produit))"
         );
@@ -597,7 +628,7 @@ class BngrcModel {
         // 2) Besoins satisfaits en montant
         // Matériaux satisfaits = dons attribués (don_materiaux) + achats (achat_materiaux)
         $stmt = $this->db->query(
-            "SELECT COALESCE(SUM(dm.quantite_donnee * COALESCE(bm.prix_unitaire, p.prix_unitaire, 0)), 0) AS total
+            "SELECT COALESCE(SUM(dm.quantite_donnee * COALESCE(p.prix_unitaire, 0)), 0) AS total
              FROM don_materiaux dm
              JOIN besoin_materiaux bm ON bm.id_besoin = dm.id_besoin
              LEFT JOIN produit p ON LOWER(TRIM(bm.nom_besoin)) = LOWER(TRIM(p.nom_produit))"

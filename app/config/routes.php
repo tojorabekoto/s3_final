@@ -28,6 +28,7 @@ Flight::route('GET /api/sinistres-ville/@id', [$controller, 'getSinistresByVille
 Flight::route('GET /api/villes/@id',            [$controller, 'apiGetVillesByRegion']);
 Flight::route('GET /api/besoins-by-ville/@id',  [$controller, 'apiGetBesoinsByVille']);
 Flight::route('GET /api/inventaire/@id',        [$controller, 'apiGetInventaireByVille']);
+Flight::route('GET /api/produits/@id_categorie', [$controller, 'apiGetProduitsByCategorie']);
 
 // Routes pour insertion de besoins
 Flight::route('GET /insertion_besoin',  [$controller, 'showInsertionBesoin']);

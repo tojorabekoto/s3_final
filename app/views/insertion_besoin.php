@@ -115,23 +115,31 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="nomBesoinInput" class="form-label">Nom du besoin <span class="text-danger">*</span></label>
-                                    <input type="text" name="nom_besoin" id="nomBesoinInput" class="form-control"
+                                    <input type="text" name="nom_besoin" id="nomBesoinInput" class="form-control" list="produitsDatalist"
                                            placeholder="Ex: Riz, Pastèque, Huile..."
                                            value="<?php echo htmlspecialchars($nom_besoin_sel ?? ''); ?>">
+                                    <datalist id="produitsDatalist"></datalist>
+                                    <small class="text-muted" id="nomBesoinHint">Tapez un nom existant ou créez-en un nouveau</small>
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Quantité nécessaire <span class="text-danger">*</span></label>
                                     <input type="number" step="0.01" min="0.01" name="quantite" class="form-control"
                                            placeholder="Ex: 100"
                                            value="<?php echo htmlspecialchars($quantite_sel ?? ''); ?>">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Unité</label>
-                                    <input type="text" name="unite" class="form-control"
+                                    <input type="text" name="unite" id="uniteInput" class="form-control"
                                            placeholder="Ex: kg, sac, pièce..."
                                            value="<?php echo htmlspecialchars($unite_sel ?? ''); ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Prix unitaire (Ar)</label>
+                                    <input type="number" step="0.01" min="0" name="prix_unitaire" id="prixUnitaireInput" class="form-control"
+                                           placeholder="Ex: 3000">
+                                    <small class="text-muted" id="prixHint"></small>
                                 </div>
                             </div>
                         </div>
@@ -248,6 +256,17 @@
                     ? 'Ex: Riz, Pastèque, Huile, Sucre...'
                     : 'Ex: Tôle, Clou, Ciment, Bois...';
             }
+            // Auto-sélectionner la catégorie correspondante
+            if (categorieInp) {
+                const targetCat = type === 'naturels' ? 'nature' : 'materiaux';
+                Array.from(categorieInp.options).forEach(opt => {
+                    if (opt.dataset.nom && opt.dataset.nom.toLowerCase() === targetCat) {
+                        categorieInp.value = opt.value;
+                    }
+                });
+                // Charger les produits de cette catégorie
+                loadProduits(categorieInp.value);
+            }
         } else {
             besoinMaterielBlock.classList.add('d-none');
             besoinArgentBlock.classList.add('d-none');
@@ -291,6 +310,89 @@
 
     filterVilles();
     toggleBesoinBlocks();
+
+    // ── Chargement des produits existants selon la catégorie ─────
+    let produitsCache = [];
+
+    async function loadProduits(idCategorie) {
+        const datalist = document.getElementById('produitsDatalist');
+        const hint = document.getElementById('nomBesoinHint');
+        const prixInput = document.getElementById('prixUnitaireInput');
+        const prixHint = document.getElementById('prixHint');
+        const uniteInput = document.getElementById('uniteInput');
+        
+        datalist.innerHTML = '';
+        produitsCache = [];
+        if (prixHint) prixHint.textContent = '';
+
+        if (!idCategorie) return;
+
+        try {
+            const resp = await fetch('/api/produits/' + idCategorie);
+            if (!resp.ok) return;
+            produitsCache = await resp.json();
+
+            produitsCache.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.nom_produit;
+                opt.dataset.unite = p.unite_standard || '';
+                opt.dataset.prix = p.prix_unitaire || 0;
+                datalist.appendChild(opt);
+            });
+
+            if (hint) {
+                hint.textContent = produitsCache.length > 0
+                    ? 'Choisissez un produit existant ou tapez un nouveau nom'
+                    : 'Aucun produit existant — un nouveau sera créé';
+            }
+        } catch(e) {
+            console.warn('Erreur chargement produits:', e);
+        }
+    }
+
+    // Quand la catégorie change → charger les produits
+    if (categorieSelect) {
+        categorieSelect.addEventListener('change', function() {
+            loadProduits(this.value);
+            // Reset les champs
+            const nomInput = document.getElementById('nomBesoinInput');
+            const prixInput = document.getElementById('prixUnitaireInput');
+            const prixHint = document.getElementById('prixHint');
+            if (nomInput) nomInput.value = '';
+            if (prixInput) prixInput.value = '';
+            if (prixHint) prixHint.textContent = '';
+        });
+    }
+
+    // Quand on sélectionne/tape un nom → auto-remplir unité et prix
+    const nomBesoinInput = document.getElementById('nomBesoinInput');
+    if (nomBesoinInput) {
+        nomBesoinInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            const match = produitsCache.find(p => p.nom_produit.toLowerCase() === val);
+            const prixInput = document.getElementById('prixUnitaireInput');
+            const prixHint = document.getElementById('prixHint');
+            const uniteInput = document.getElementById('uniteInput');
+
+            if (match) {
+                // Produit existant trouvé → auto-remplir
+                if (uniteInput && match.unite_standard) uniteInput.value = match.unite_standard;
+                if (prixInput) prixInput.value = match.prix_unitaire || '';
+                if (prixHint) {
+                    prixHint.textContent = '✓ Produit existant — prix et unité pré-remplis';
+                    prixHint.className = 'text-success small';
+                }
+            } else if (val.length > 0) {
+                // Nouveau produit
+                if (prixHint) {
+                    prixHint.textContent = '⚠ Nouveau produit — renseignez le prix unitaire';
+                    prixHint.className = 'text-warning small';
+                }
+            } else {
+                if (prixHint) { prixHint.textContent = ''; }
+            }
+        });
+    }
 </script>
 
 <?php include 'footer.php'; ?>
